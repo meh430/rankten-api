@@ -1,16 +1,15 @@
 from flask import Response, request
 from flask_jwt_extended import create_access_token
-from database.user import User
-from database.list_collection import ListCollection
 from flask_restful import Resource
+from database.models import User, ListCollection
 import datetime
 
 
 class SignUpApi(Resource):
     def post(self):
         body = request.get_json()
-        user_lists = ListCollection(user_name=body['user_name']).save()
-        user = User(**body, created_lists=user_lists.id)
+        user_lists = ListCollection(user_name=body['user_name'])
+        user = User(**body, created_lists=user_lists)
         user.hash_pass()
         user.save()
         return {'id': str(user.id)}, 200
