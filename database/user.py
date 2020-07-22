@@ -1,4 +1,5 @@
 from .db import db
+from flask_bcrypt import generate_password_hash, check_password_hash
 import datetime
 
 
@@ -15,3 +16,9 @@ class User(db.Document):
     followers = db.ListField(db.ObjectIdField(), default=[])
     following_num = db.IntField(default=0)
     followers_num = db.IntField(default=0)
+
+    def hash_pass(self):
+        self.password = generate_password_hash(self.password).decode('utf8')
+
+    def check_password(self, password):
+        return check_password_hash(self.password, password)
