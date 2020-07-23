@@ -17,26 +17,16 @@ class User(db.Document):
     followers_num = db.IntField(default=0)
 
     created_lists = db.ReferenceField('ListCollection')
-    liked_lists = db.ListField(db.ReferenceField(
-        'RankedList', reverse_delete_rule=db.PULL))
     following = db.ListField(db.ReferenceField(
-        'User', reverse_delete_rule=db.PULL))
+        'self', reverse_delete_rule=db.PULL))
     followers = db.ListField(db.ReferenceField(
-        'User', reverse_delete_rule=db.PULL))
+        'self', reverse_delete_rule=db.PULL))
 
     def hash_pass(self):
         self.password = generate_password_hash(self.password).decode('utf8')
 
     def check_password(self, password):
         return check_password_hash(self.password, password)
-
-
-class ListCollection(db.Document):
-    user_name = db.StringField(required=True, unique=True)
-    belongs_to = db.ReferenceField(
-        'User', reverse_delete_rule=db.CASCADE)
-    rank_lists = db.ListField(db.ReferenceField(
-        'RankedList', reverse_delete_rule=db.PULL))
 
 
 # use raw query to implement search functionality
@@ -55,4 +45,14 @@ class RankedList(db.Document):
     num_likes = db.IntField(required=True, default=0)
     liked_users = db.ListField(db.ReferenceField(
         'User', reverse_delete_rule=db.PULL), default=[])
-    rank_item = db.ListField(db.DictField(), max_length=10, default=[])
+    rank_items = db.ListField(db.DictField(), max_length=10, default=[])
+
+
+class ListCollection(db.Document):
+    user_name = db.StringField(required=True, unique=True)
+    belongs_to = db.ReferenceField(
+        'User', reverse_delete_rule=db.CASCADE)
+    rank_lists = db.ListField(db.ReferenceField(
+        'RankedList', reverse_delete_rule=db.PULL))
+    liked_lists = db.ListField(db.ReferenceField(
+        'RankedList', reverse_delete_rule=db.PULL))

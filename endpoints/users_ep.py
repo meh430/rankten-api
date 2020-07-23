@@ -1,6 +1,7 @@
 from flask import Response, request
-from database.user import User
+from database.models import User
 from flask_restful import Resource
+from flask_jwt_extended import jwt_required
 
 
 class UsersApi(Resource):
@@ -9,5 +10,7 @@ class UsersApi(Resource):
 
 
 class UserApi(Resource):
+
+    # @jwt_required
     def get(self, id):
         return Response(User.objects.get(id=id).to_json(), mimetype='application/json', status=200)
