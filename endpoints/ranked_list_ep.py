@@ -1,8 +1,8 @@
-from flask import Response, request
+from flask import Response, request, jsonify
 from flask_restful import Resource
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from database.models import RankedList, User, ListCollection
-
+from .routes import get_slice_bounds
 # manipulate a list
 
 
@@ -29,11 +29,6 @@ class RankedListApi(Resource):
 
 
 class RankedListsApi(Resource):
-    # get all lists
-    def get(self):
-        all_lists = RankedList.objects().to_json()
-        return Response(all_lists, mimetype='application/json', status=200)
-
     # create new list
     @jwt_required
     def post(self):
@@ -46,3 +41,13 @@ class RankedListsApi(Resource):
         user.created_lists.update(push__rank_lists=new_list)
         user.created_lists.save()
         return {'id': str(new_list.id)}, 200
+
+
+class UserRankedListsApi(Resource):
+    # returns lists created by a specific user
+    def get(self, name, page):
+        user = User.objects.get(user_name=name)
+        list_coll = user.created_lists
+        lower, upper = get_slice_bounds(page)
+
+        return Response(jsonify(list_coll.rank_lists[lower:upper]), mimetype='application/json', status=200)

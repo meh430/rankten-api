@@ -23,3 +23,9 @@ def init_routes(api):
     api.add_resource(DiscoverApi, '/discover/<page>')
 
     api.add_resource(LikeApi, '/like/<id>')
+
+
+def get_slice_bounds(page):
+    upper = page * 25
+    lower = upper - 25
+    return (lower, upper)

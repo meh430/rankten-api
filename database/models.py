@@ -2,12 +2,6 @@ from .db import db
 from flask_bcrypt import generate_password_hash, check_password_hash
 import datetime
 
-# users lists? liked lists? basically, endpoint for getting data on list of ref fields?
-# change get to be user name instead of id
-# when getting lists of user info, only get the username and prof pic?
-# implement pagination for discover endpoint? return only a little bit of info like first three? and first pic?
-# ep for followers? ep for following? ep following someone (id/username)?
-
 # if user is deleted, delete list collection as well
 # if post is deleted, delete ref in list collection?
 

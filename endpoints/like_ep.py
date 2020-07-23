@@ -2,7 +2,7 @@ from flask import Response, request, jsonify
 from database.models import RankedList, User
 from flask_restful import Resource
 from flask_jwt_extended import jwt_required, get_jwt_identity
-
+from .routes import get_slice_bounds
 # like/unlike post
 # check if user in liked list or not
 # like: +1 num likes, add user to like list, add points to owner of the ranked list
@@ -10,6 +10,7 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 
 
 class LikeApi(Resource):
+    # like/unlike a post
     @jwt_required
     def post(self, id):
         # get curr user info
@@ -36,3 +37,21 @@ class LikeApi(Resource):
             user_list_coll.update(pull__liked_list=curr_list)
 
         return ('liked list' if exec_like else 'unliked list'), 200
+
+    # returns list of users that liked a list
+    def get(self, id):
+        curr_list = RankedList.objects.get(id=id)
+        like_list = []
+        for liker in curr_list.liked_users:
+            like_list.append({user_name: liker.user_name})
+
+        return Response(jsonify(like_list), mimetype='application/json', status=200)
+
+
+class LikedListsApi(Resource):
+    # return all the lists liked by a user
+    def get(self, name, page):
+        user = User.objects.get(user_name=name)
+        list_coll = user.created_lists
+        lower, upper = get_slice_bounds(page)
+        return Response(jsonify(list_coll.liked_lists[lower:upper]), mimetype='application/json', status=200)
