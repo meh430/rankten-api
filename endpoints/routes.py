@@ -1,6 +1,8 @@
 from .auth import SignUpApi, LoginApi
 from .users_ep import UsersApi, UserApi
 from .ranked_list_ep import RankedListsApi, RankedListApi
+from .follow_ep import FollowApi, FollowersApi, FollowingApi
+from .discover_ep import DiscoverApi
 
 
 def init_routes(api):
@@ -12,3 +14,9 @@ def init_routes(api):
 
     api.add_resource(RankedListsApi, '/rankedlist')
     api.add_resource(RankedListApi, '/rankedlist/<id>')
+
+    api.add_resource(FollowApi, '/follow/<name>')
+    api.add_resource(FollowersApi, '/followers/<name>')
+    api.add_resource(FollowingApi, '/following/<name>')
+
+    api.add_resource(DiscoverApi, '/discover/<page>')
