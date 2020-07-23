@@ -11,10 +11,11 @@ def init_routes(api):
     api.add_resource(LoginApi, '/login')
 
     api.add_resource(UsersApi, '/users')
-    api.add_resource(UserApi, '/users/<id>')
+    api.add_resource(UserApi, '/users/<name>')
 
     api.add_resource(RankedListsApi, '/rankedlist')
     api.add_resource(RankedListApi, '/rankedlist/<id>')
+    api.add_resource(UserRankedListsApi, '/rankedlist/<name>/<page>')
 
     api.add_resource(FollowApi, '/follow/<name>')
     api.add_resource(FollowersApi, '/followers/<name>')
@@ -23,6 +24,7 @@ def init_routes(api):
     api.add_resource(DiscoverApi, '/discover/<page>')
 
     api.add_resource(LikeApi, '/like/<id>')
+    api.add_resource(LikedListsApi, '/likes/<name>/<page>')
 
 
 def get_slice_bounds(page):

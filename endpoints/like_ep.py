@@ -54,4 +54,4 @@ class LikedListsApi(Resource):
         user = User.objects.get(user_name=name)
         list_coll = user.created_lists
         lower, upper = get_slice_bounds(page)
-        return Response(jsonify(list_coll.liked_lists[lower:upper]), mimetype='application/json', status=200)
+        return Response(list_coll.liked_lists[lower:upper].to_json(), mimetype='application/json', status=200)

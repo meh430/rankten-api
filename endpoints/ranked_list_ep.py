@@ -1,4 +1,4 @@
-from flask import Response, request, jsonify
+from flask import Response, request
 from flask_restful import Resource
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from database.models import RankedList, User, ListCollection
@@ -14,9 +14,10 @@ class RankedListApi(Resource):
     # update specified list
     @jwt_required
     def put(self, id):
-        # create post, add user to post, add post to list collection of user
+        # TODO: check if the req to update is coming from the owner of the list
+        uid = get_jwt_identity()
         body = request.get_json()
-        RankedList.objects.get(id=id).update(**body)
+        RankedList.objects.get(id=id, created_by=uid).update(**body)
         return 'Updated ranked list', 200
 
     # delete specified list
@@ -50,4 +51,4 @@ class UserRankedListsApi(Resource):
         list_coll = user.created_lists
         lower, upper = get_slice_bounds(page)
 
-        return Response(jsonify(list_coll.rank_lists[lower:upper]), mimetype='application/json', status=200)
+        return Response(list_coll.rank_lists[lower:upper].to_json(), mimetype='application/json', status=200)
