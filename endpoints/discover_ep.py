@@ -9,4 +9,4 @@ class DiscoverApi(Resource):
         upper = page * 25
         lower = upper - 25
 
-        return Response(RankedList.objects[lower:upper].to_json(), mimetype='application/json', status=200)
+        return Response(RankedList.objects.exclude('created_by', 'liked_users')[lower:upper].to_json(), mimetype='application/json', status=200)

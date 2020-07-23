@@ -14,11 +14,7 @@ class FollowApi(Resource):
         uid = get_jwt_identity()
         user = User.objects.get(id=uid)
         other = User.objects.get(user_name=name)
-        exec_follow = True
-        for follow in user.following:
-            if other == follow:
-                exec_follow = False
-                break
+        exec_follow = other not in user.following
 
         if exec_follow:
             user.update(push__following=other,
