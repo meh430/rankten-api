@@ -2,6 +2,12 @@ from .db import db
 from flask_bcrypt import generate_password_hash, check_password_hash
 import datetime
 
+# users lists? liked lists? basically, endpoint for getting data on list of ref fields?
+# change get to be user name instead of id
+# when getting lists of user info, only get the username and prof pic?
+# implement pagination for discover endpoint? return only a little bit of info like first three? and first pic?
+# ep for followers? ep for following? ep following someone (id/username)?
+
 # if user is deleted, delete list collection as well
 # if post is deleted, delete ref in list collection?
 
@@ -9,14 +15,18 @@ import datetime
 class User(db.Document):
     user_name = db.StringField(required=True, unique=True)
     password = db.StringField(required=True)
+
     date_created = db.DateTimeField(default=datetime.datetime.utcnow)
+
     bio = db.StringField(default="")
+
     rank_points = db.IntField(default=0)
     list_num = db.IntField(default=0)
     following_num = db.IntField(default=0)
     followers_num = db.IntField(default=0)
 
     created_lists = db.ReferenceField('ListCollection')
+
     following = db.ListField(db.ReferenceField(
         'self', reverse_delete_rule=db.PULL))
     followers = db.ListField(db.ReferenceField(
@@ -36,11 +46,12 @@ class User(db.Document):
 # description
 # picture
 
-
 class RankedList(db.Document):
-    user_name = db.StringField(required=True, unique=True)
-    created_by = db.ReferenceField('User', reveres_delete_rule=db.CASCADE)
+    user_name = db.StringField(required=True)
+    created_by = db.ReferenceField('User', reverse_delete_rule=db.CASCADE)
+
     date_created = db.DateTimeField(default=datetime.datetime.utcnow)
+
     title = db.StringField(required=True)
     num_likes = db.IntField(required=True, default=0)
     liked_users = db.ListField(db.ReferenceField(
