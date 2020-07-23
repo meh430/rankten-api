@@ -3,6 +3,7 @@ from .users_ep import UsersApi, UserApi
 from .ranked_list_ep import RankedListsApi, RankedListApi
 from .follow_ep import FollowApi, FollowersApi, FollowingApi
 from .discover_ep import DiscoverApi
+from .like_ep import LikeApi
 
 
 def init_routes(api):
@@ -20,3 +21,5 @@ def init_routes(api):
     api.add_resource(FollowingApi, '/following/<name>')
 
     api.add_resource(DiscoverApi, '/discover/<page>')
+
+    api.add_resource(LikeApi, '/like/<id>')

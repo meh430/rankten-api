@@ -18,17 +18,17 @@ class FollowApi(Resource):
 
         if exec_follow:
             user.update(push__following=other,
-                        following_num=user.following_num+1)
+                        inc__following_num=1)
             user.save()
             other.update(push__followers=user,
-                         followers_num=other.followers_num + 1)
+                         inc__followers_num=1)
             other.save()
         else:
             user.update(pull__following=other,
-                        following_num=user.following_num - 1)
+                        dec__following_num=1)
             user.save()
             other.update(pull__followers=user,
-                         followers_num=other.followers_num - 1)
+                         dec__followers_num=1)
 
         return ('followed user' if exec_follow else 'unfollowed user'), 200
 

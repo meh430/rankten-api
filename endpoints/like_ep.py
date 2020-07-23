@@ -12,21 +12,27 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 class LikeApi(Resource):
     @jwt_required
     def post(self, id):
+        # get curr user info
         uid = get_jwt_identity()
         user = User.objects.get(id=uid)
+        user_list_coll = user.created_lists
+
+        # get list info
         curr_list = RankedList.objects.get(id=id)
-        like_list = curr_list.liked_users
         list_owner = curr_list.created_by
 
-        exec_like = user not in like_list
+        # like if the list is not in user's liked list
+        exec_like = curr_list not in user_list_coll.liked_lists
 
         if exec_like:
-            curr_list.update(num_likes=curr_list.num_likes +
-                             1, push__liked_users=user)
-            list_owner.update(rank_points=list_owner.rank_points+1)
+            curr_list.update(inc__num_likes=1, push__liked_users=user)
+            list_owner.update(inc__rank_points=1)
+            curr_list.save()
+            user_list_coll.update(push__liked_list=curr_list)
         else:
-            curr_list.update(num_likes=curr_list.num_likes -
-                             1, pull__liked_users=user)
-            list_owner.update(rank_points=list_owner.rank_points - 1)
+            curr_list.update(dec__num_likes=1, pull__liked_users=user)
+            list_owner.update(dec__rank_points=1)
+            curr_list.save()
+            user_list_coll.update(pull__liked_list=curr_list)
 
         return ('liked list' if exec_like else 'unliked list'), 200
