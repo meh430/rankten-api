@@ -1,9 +1,9 @@
 from .auth import SignUpApi, LoginApi
 from .users_ep import UsersApi, UserApi
-from .ranked_list_ep import RankedListsApi, RankedListApi
+from .ranked_list_ep import RankedListsApi, RankedListApi, UserRankedListsApi
 from .follow_ep import FollowApi, FollowersApi, FollowingApi
 from .discover_ep import DiscoverApi
-from .like_ep import LikeApi
+from .like_ep import LikeApi, LikedListsApi
 from .search_ep import SearchListsApi, SearchUsersApi
 
 
@@ -29,9 +29,3 @@ def init_routes(api):
 
     api.add_resource(SearchUsersApi, '/search_users')
     api.add_resource(SearchListsApi, '/search_lists')
-
-
-def get_slice_bounds(page):
-    upper = page * 25
-    lower = upper - 25
-    return (lower, upper)

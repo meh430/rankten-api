@@ -15,7 +15,7 @@ class SignUpApi(Resource):
         user.save()
         user_lists.update(belongs_to=user)
         acc_token = create_access_token(identity=str(
-            user.id), expires_delta=datetime.timedelta(days=365))
+            user.id), expires_delta=datetime.timedelta(minutes=25.0))
         return {'jwt_token': acc_token}, 200
 
 
@@ -28,5 +28,5 @@ class LoginApi(Resource):
             return {'error': 'invalid credentials'}, 401
 
         acc_token = create_access_token(identity=str(
-            user.id), expires_delta=datetime.timedelta(days=365))
+            user.id), expires_delta=datetime.timedelta(minutes=25.0))
         return {'jwt_token': acc_token}, 200

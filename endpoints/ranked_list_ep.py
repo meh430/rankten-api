@@ -2,7 +2,7 @@ from flask import Response, request
 from flask_restful import Resource
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from database.models import RankedList, User, ListCollection
-from .routes import get_slice_bounds
+from database.db import get_slice_bounds
 # manipulate a list
 
 
@@ -12,6 +12,7 @@ class RankedListApi(Resource):
         return Response(RankedList.objects.get(id=id).to_json(), mimetype='application/json', status=200)
 
     # update specified list
+    # TODO: validate sent data
     @jwt_required
     def put(self, id):
         # TODO: check if the req to update is coming from the owner of the list
@@ -39,7 +40,12 @@ class RankedListsApi(Resource):
         uid = get_jwt_identity()
         user = User.objects.get(id=uid)
         body = request.get_json()
-        new_list = RankedList(**body, created_by=user)
+        new_list = None
+        if 'user_name' in body:
+            new_list = RankedList(**body, created_by=user)
+        else:
+            new_list = RankedList(**body, created_by=user,
+                                  user_name=user.user_name)
         new_list.save()
         user.created_lists.update(push__rank_lists=new_list)
         user.created_lists.save()
@@ -49,7 +55,7 @@ class RankedListsApi(Resource):
 
 class UserRankedListsApi(Resource):
     # returns lists created by a specific user
-    #TODO: implement sort options like newest, oldest or most liked
+    # TODO: implement sort options like newest, oldest or most liked
     def get(self, name, page):
         user = User.objects.get(user_name=name)
         list_coll = user.created_lists

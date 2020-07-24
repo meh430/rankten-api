@@ -10,6 +10,8 @@ class FollowApi(Resource):
         # check if user in following list. If there, that means unfollow, if not, follow
         uid = get_jwt_identity()
         user = User.objects.get(id=uid)
+        if user.user_name == name:
+            return 'Error, cannot follow yourself', 400
         other = User.objects.get(user_name=name)
         exec_follow = other not in user.following
 
@@ -33,7 +35,7 @@ class FollowingApi(Resource):
         following_list = []
         for f in following:
             following_list.append({
-                user_name: f.user_name
+                'user_name': f.user_name
             })
 
         return Response(jsonify(following_list), mimetype='application/json', status=200)
@@ -45,7 +47,7 @@ class FollowersApi(Resource):
         followers_list = []
         for f in followers:
             followers_list.append({
-                user_name: f.user_name
+                'user_name': f.user_name
             })
 
         return Response(jsonify(followers_list), mimetype='application/json', status=200)

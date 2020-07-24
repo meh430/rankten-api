@@ -1,7 +1,7 @@
 from flask import Response, request
 from database.models import RankedList
 from flask_restful import Resource
-from .routes import get_slice_bounds
+from database.db import get_slice_bounds
 
 
 class DiscoverApi(Resource):
