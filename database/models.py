@@ -3,7 +3,7 @@ from flask_bcrypt import generate_password_hash, check_password_hash
 import datetime
 
 # if user is deleted, delete list collection as well
-# if post is deleted, delete ref in list collection?
+# if post is deleted, delete ref in list collection
 
 
 class User(db.Document):
@@ -32,13 +32,6 @@ class User(db.Document):
     def check_password(self, password):
         return check_password_hash(self.password, password)
 
-
-# use raw query to implement search functionality
-# parent_title
-# item_name
-# rank
-# description
-# picture
 
 class RankedList(db.Document):
     user_name = db.StringField(required=True)

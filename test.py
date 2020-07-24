@@ -21,18 +21,16 @@ class RankItem:
         return rankItem
 
 
-# create some users and store returned jwt tokens?
+# create some users and store returned jwt tokens
 # have other users follow one user
 # create some posts for each person
+
 # like some posts
 # add something to some posts
 # get everyone who has liked a certain post
 # get all liked posts and all created posts
 # delete all posts
 
-# requests.get(url=endpoint, headers={
-#    'User-agent': 'test bot 1.0'}, json=data).json()
-#hed = {'Authorization': 'Bearer ' + auth_token}
 
 user_data = [
     {

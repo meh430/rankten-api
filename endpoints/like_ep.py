@@ -3,10 +3,6 @@ from database.models import RankedList, User
 from flask_restful import Resource
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from database.db import get_slice_bounds
-# like/unlike post
-# check if user in liked list or not
-# like: +1 num likes, add user to like list, add points to owner of the ranked list
-# unlike: -1 num likes, rm user from like list, rm points from owner of the ranked list
 
 
 class LikeApi(Resource):

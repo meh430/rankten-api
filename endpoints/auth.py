@@ -6,6 +6,7 @@ import datetime
 
 
 class SignUpApi(Resource):
+    # create new user document and return generated jwt token
     def post(self):
         body = request.get_json()
         user_lists = ListCollection(user_name=body['user_name'])
@@ -20,6 +21,7 @@ class SignUpApi(Resource):
 
 
 class LoginApi(Resource):
+    # return newly generated jwt token for login
     def post(self):
         body = request.get_json()
         user = User.objects.get(user_name=body['user_name'])
