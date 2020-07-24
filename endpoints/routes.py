@@ -4,6 +4,7 @@ from .ranked_list_ep import RankedListsApi, RankedListApi
 from .follow_ep import FollowApi, FollowersApi, FollowingApi
 from .discover_ep import DiscoverApi
 from .like_ep import LikeApi
+from .search_ep import SearchListsApi, SearchUsersApi
 
 
 def init_routes(api):
@@ -25,6 +26,9 @@ def init_routes(api):
 
     api.add_resource(LikeApi, '/like/<id>')
     api.add_resource(LikedListsApi, '/likes/<name>/<page>')
+
+    api.add_resource(SearchUsersApi, '/search_users')
+    api.add_resource(SearchListsApi, '/search_lists')
 
 
 def get_slice_bounds(page):

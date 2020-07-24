@@ -28,12 +28,10 @@ class LikeApi(Resource):
         if exec_like:
             curr_list.update(inc__num_likes=1, push__liked_users=user)
             list_owner.update(inc__rank_points=1)
-            curr_list.save()
             user_list_coll.update(push__liked_list=curr_list)
         else:
             curr_list.update(dec__num_likes=1, pull__liked_users=user)
             list_owner.update(dec__rank_points=1)
-            curr_list.save()
             user_list_coll.update(pull__liked_list=curr_list)
 
         return ('liked list' if exec_like else 'unliked list'), 200
@@ -50,6 +48,7 @@ class LikeApi(Resource):
 
 class LikedListsApi(Resource):
     # return all the lists liked by a user
+    # TODO: implement sort options like newest, oldest or most liked
     def get(self, name, page):
         user = User.objects.get(user_name=name)
         list_coll = user.created_lists

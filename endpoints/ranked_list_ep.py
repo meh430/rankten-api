@@ -24,8 +24,10 @@ class RankedListApi(Resource):
     @jwt_required
     def delete(self, id):
         uid = get_jwt_identity()
-        ranked_list = RankedList.objects.get(id=id, created_by=uid)
+        user = User.objects.get(id=uid)
+        ranked_list = RankedList.objects.get(id=id, created_by=user)
         ranked_list.delete()
+        user.update(dec__list_num=1)
         return 'Deleted ranked list', 200
 
 
@@ -41,11 +43,13 @@ class RankedListsApi(Resource):
         new_list.save()
         user.created_lists.update(push__rank_lists=new_list)
         user.created_lists.save()
+        user.update(inc__list_num=1)
         return {'id': str(new_list.id)}, 200
 
 
 class UserRankedListsApi(Resource):
     # returns lists created by a specific user
+    #TODO: implement sort options like newest, oldest or most liked
     def get(self, name, page):
         user = User.objects.get(user_name=name)
         list_coll = user.created_lists

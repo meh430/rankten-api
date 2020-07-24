@@ -13,6 +13,7 @@ class SignUpApi(Resource):
         user = User(**body, created_lists=user_lists)
         user.hash_pass()
         user.save()
+        user_lists.update(belongs_to=user)
         acc_token = create_access_token(identity=str(
             user.id), expires_delta=datetime.timedelta(days=365))
         return {'jwt_token': acc_token}, 200
