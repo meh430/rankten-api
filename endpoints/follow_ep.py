@@ -38,7 +38,7 @@ class FollowingApi(Resource):
                 'user_name': f.user_name
             })
 
-        return Response(jsonify(following_list), mimetype='application/json', status=200)
+        return jsonify(following_list)
 
 
 class FollowersApi(Resource):
@@ -50,4 +50,4 @@ class FollowersApi(Resource):
                 'user_name': f.user_name
             })
 
-        return Response(jsonify(followers_list), mimetype='application/json', status=200)
+        return jsonify(followers_list)

@@ -24,11 +24,11 @@ class LikeApi(Resource):
         if exec_like:
             curr_list.update(inc__num_likes=1, push__liked_users=user)
             list_owner.update(inc__rank_points=1)
-            user_list_coll.update(push__liked_list=curr_list)
+            user_list_coll.update(push__liked_lists=curr_list)
         else:
             curr_list.update(dec__num_likes=1, pull__liked_users=user)
             list_owner.update(dec__rank_points=1)
-            user_list_coll.update(pull__liked_list=curr_list)
+            user_list_coll.update(pull__liked_lists=curr_list)
 
         return ('liked list' if exec_like else 'unliked list'), 200
 
@@ -39,7 +39,7 @@ class LikeApi(Resource):
         for liker in curr_list.liked_users:
             like_list.append({'user_name': liker.user_name})
 
-        return Response(jsonify(like_list), mimetype='application/json', status=200)
+        return jsonify(like_list)
 
 
 class LikedListsApi(Resource):
@@ -49,4 +49,4 @@ class LikedListsApi(Resource):
         user = User.objects.get(user_name=name)
         list_coll = user.created_lists
         lower, upper = get_slice_bounds(page)
-        return Response(list_coll.liked_lists[lower:upper].to_json(), mimetype='application/json', status=200)
+        return jsonify(list_coll.liked_lists[lower:upper])

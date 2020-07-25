@@ -64,18 +64,20 @@ user_data = [
 ]
 
 tokens = dict({})
-
+# create users
 for user in user_data:
     tokens[user['user_name']] = requests.post(
         url='http://localhost:5000/signup', headers={'User-agent': 'test bot 1.0'}, json=user).json()['jwt_token']
 print('done creating users')
 
+# follow meh
 for user in user_data:
     if user['user_name'] != 'meh':
         requests.post(url='http://localhost:5000/follow/meh', headers={
                       'User-agent': 'test bot 1.0', 'Authorization': f"Bearer {tokens[user['user_name']]}"}, json={})
 print('done following')
 
+# create lists for each person
 data_topics = ['Xbox Games', 'PLaystation Games', 'Phones', 'Anime', 'Horror Movies', 'Comedy Movies', 'World Leaders',
                'Actors', 'Plants', 'Colors', 'Fruits', 'Companies', 'Books', 'Shoes', 'Watches', 'YouTubers', 'TV Shows',
                'Languages', 'Programming Languages', 'Vacation Spots', 'Animals']
@@ -111,3 +113,16 @@ for user in user_data:
                       'User-agent': 'test bot 1.0', 'Authorization': f"Bearer {tokens[user['user_name']]}"}, json=rli)
 
 print('Done creating posts')
+
+# like mehs lists
+meh_list = requests.get(url='http://localhost:5000/rankedlist/meh/1',
+                        headers={'User-agent': 'test bot 1.0'}).json()
+
+for user in user_data:
+    if user['user_name'] != 'meh':
+
+        for li in meh_list:
+            requests.post(url=f"http://localhost:5000/like/{li['_id']['$oid']}", headers={
+                          'User-agent': 'test bot 1.0', 'Authorization': f"Bearer {tokens[user['user_name']]}"}, json={})
+
+print('Done liking')

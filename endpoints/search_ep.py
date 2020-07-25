@@ -8,7 +8,6 @@ class SearchUsersApi(Resource):
         query = request.args.get('q')
         result = User.objects(user_name__icontains=query).only(
             'user_name', 'rank_points')
-
         return Response(result.to_json(), mimetype='application/json', status=200)
 
 

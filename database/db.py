@@ -8,6 +8,6 @@ def init_db(app):
 
 
 def get_slice_bounds(page):
-    upper = page * 25
+    upper = int(page) * 25
     lower = upper - 25
     return (lower, upper)
