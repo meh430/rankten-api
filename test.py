@@ -24,7 +24,6 @@ class RankItem:
 # create some users and store returned jwt tokens
 # have other users follow one user
 # create some posts for each person
-
 # like some posts
 # add something to some posts
 # get everyone who has liked a certain post
@@ -126,3 +125,29 @@ for user in user_data:
                           'User-agent': 'test bot 1.0', 'Authorization': f"Bearer {tokens[user['user_name']]}"}, json={})
 
 print('Done liking')
+
+# like and unlike all posts
+other_list = requests.get(url='http://localhost:5000/rankedlist/i_shit_a/1',
+                          headers={'User-agent': 'test bot 1.0'}).json()
+
+for li in other_list:
+    requests.post(url=f"http://localhost:5000/like/{li['_id']['$oid']}", headers={
+        'User-agent': 'test bot 1.0', 'Authorization': f"Bearer {tokens[user_data[0]['user_name']]}"}, json={})
+
+for li in other_list:
+    requests.post(url=f"http://localhost:5000/like/{li['_id']['$oid']}", headers={
+        'User-agent': 'test bot 1.0', 'Authorization': f"Bearer {tokens[user_data[0]['user_name']]}"}, json={})
+
+# add data to everone's posts
+for user in user_data:
+    user_lists = requests.get(
+        url=f"http://localhost:5000/rankedlist/{user['user_name']}/1", headers={'User-agent': 'test bot 1.0'}).json()
+    for li in user_lists:
+        item_no = len(li['rank_items'])
+        rem = 10 - item_no
+        for i in range(1, rem+1):
+            li['rank_items'].append(RankItem(
+                item_name=f"{li['title']}{i+item_no}", rank=(i+item_no), description=f"Description of {li['title']} number {i+item_no}").to_dict())
+
+        requests.put(url=f"http://localhost:5000/rankedlist/{li['_id']['$oid']}", headers={
+            'User-agent': 'test bot 1.0', 'Authorization': f"Bearer {tokens[user['user_name']]}"}, json={'rank_items': li['rank_items']})
