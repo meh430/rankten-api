@@ -9,7 +9,7 @@ class SignUpApi(Resource):
     # create new user document and return generated jwt token
     def post(self):
         body = request.get_json()
-        user_lists = ListCollection(user_name=body['user_name'])
+        user_lists = ListCollection()
         user_lists.save()
         user = User(**body, created_lists=user_lists)
         user.hash_pass()

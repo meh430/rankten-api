@@ -17,7 +17,13 @@ app.config['MONGODB_SETTINGS'] = {
     'host': 'mongodb://localhost:27017'
 }
 
+
+@app.route('/ping')
+def method_name():
+    return 'PONG!'
+
+
 init_db(app)
 init_routes(api)
 
-app.run()
+app.run(host='0.0.0.0', port=5000)

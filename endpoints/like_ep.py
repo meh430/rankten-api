@@ -42,6 +42,10 @@ class LikeApi(Resource):
         return jsonify(like_list)
 
 
+class LikeCommentApi(Resource):
+    pass
+
+
 class LikedListsApi(Resource):
     # return all the lists liked by a user
     # TODO: implement sort options like newest, oldest or most liked

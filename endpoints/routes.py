@@ -22,7 +22,7 @@ def init_routes(api):
     api.add_resource(FollowersApi, '/followers/<name>')
     api.add_resource(FollowingApi, '/following/<name>')
 
-    api.add_resource(DiscoverApi, '/discover/<page>')
+    api.add_resource(DiscoverApi, '/discover/<page>/<sort>')
 
     api.add_resource(LikeApi, '/like/<id>')
     api.add_resource(LikedListsApi, '/likes/<name>/<page>')

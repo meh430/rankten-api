@@ -2,29 +2,26 @@ from .db import db
 from flask_bcrypt import generate_password_hash, check_password_hash
 import datetime
 
-# if user is deleted, delete list collection as well
-# if post is deleted, delete ref in list collection
-
 
 class User(db.Document):
-    user_name = db.StringField(required=True, unique=True)
-    password = db.StringField(required=True)
-
     date_created = db.DateTimeField(default=datetime.datetime.utcnow)
 
-    bio = db.StringField(default="")
+    user_name = db.StringField(required=True, unique=True, max_length=15)
+    password = db.StringField(required=True, min_length=6)
 
+    bio = db.StringField()
+    prof_pic = db.StringField()
     rank_points = db.IntField(default=0)
-    list_num = db.IntField(default=0)
+
     following_num = db.IntField(default=0)
     followers_num = db.IntField(default=0)
-
-    created_lists = db.ReferenceField('ListCollection')
-
     following = db.ListField(db.ReferenceField(
         'self', reverse_delete_rule=db.PULL))
     followers = db.ListField(db.ReferenceField(
         'self', reverse_delete_rule=db.PULL))
+
+    list_num = db.IntField(default=0)
+    created_lists = db.ReferenceField('ListCollection')
 
     def hash_pass(self):
         self.password = generate_password_hash(self.password).decode('utf8')
@@ -33,21 +30,46 @@ class User(db.Document):
         return check_password_hash(self.password, password)
 
 
+class RankItem(db.Document):
+    belongs_to = db.ReferenceField('RankedList')
+    item_name = db.StringField(required=True)
+    rank = db.IntField(default=0)
+    description = db.StringField()
+    picture = db.StringField()
+
+
 class RankedList(db.Document):
-    user_name = db.StringField(required=True)
-    created_by = db.ReferenceField('User', reverse_delete_rule=db.CASCADE)
-
     date_created = db.DateTimeField(default=datetime.datetime.utcnow)
-
+    created_by = db.ReferenceField('User', reverse_delete_rule=db.CASCADE)
+    user_name = db.StringField(required=True)
     title = db.StringField(required=True)
     num_likes = db.IntField(required=True, default=0)
     liked_users = db.ListField(db.ReferenceField(
-        'User', reverse_delete_rule=db.PULL), default=[])
-    rank_items = db.ListField(db.DictField(), max_length=10, default=[])
+        'User', reverse_delete_rule=db.PULL))
+    rank_list = db.ListField(db.ReferenceField(
+        'RankItem', reverse_delete_rule=db.PULL), max_length=10)
+
+    comment_section = db.ReferenceField('CommentSection')
+
+
+RankedList.register_delete_rule(RankItem, 'belongs_to', db.CASCADE)
+
+
+class Comment(db.Document):
+    made_by = db.ReferenceField('User', reverse_delete_rule=db.CASCADE)
+    user_name = db.StringField(required=True)
+    comment = db.StringField(required=True)
+    likes = db.IntField(default=0)
+
+
+class CommentSection(db.Document):
+    belongs_to = db.ReferenceField(
+        'RankedList', reverse_delete_rule=db.CASCADE)
+    comments = db.ListField(db.ReferenceField(
+        'Comment', reverse_delete_rule=db.PULL))
 
 
 class ListCollection(db.Document):
-    user_name = db.StringField(required=True, unique=True)
     belongs_to = db.ReferenceField(
         'User', reverse_delete_rule=db.CASCADE)
     rank_lists = db.ListField(db.ReferenceField(
