@@ -25,11 +25,10 @@ class RankedListApi(Resource):
         return Response(RankedList.objects.get(id=id).to_json(), mimetype='application/json', status=200)
 
     # update specified list
-    # TODO: validate sent data
+    @jwt_required
     @list_update_error
     @schema_val_error
     @internal_server_error
-    @jwt_required
     def put(self, id):
         uid = get_jwt_identity()
         body = request.get_json()
@@ -43,10 +42,10 @@ class RankedListApi(Resource):
         return 'Updated ranked list', 200
 
     # delete specified list
+    @jwt_required
     @list_delete_error
     @schema_val_error
     @internal_server_error
-    @jwt_required
     def delete(self, id):
         uid = get_jwt_identity()
         user = User.objects.get(id=uid)

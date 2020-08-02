@@ -6,11 +6,10 @@ from errors import *
 
 
 class FollowApi(Resource):
-
+    @jwt_required
     @user_does_not_exist_error
     @schema_val_error
     @internal_server_error
-    @jwt_required
     def post(self, name):
         uid = get_jwt_identity()
         user = User.objects.get(id=uid)
@@ -34,18 +33,18 @@ class FollowApi(Resource):
 
 
 class FollowingApi(Resource):
+    @user_does_not_exist_error
     @schema_val_error
     @internal_server_error
-    @user_does_not_exist_error
     def get(self, name):
         following = User.objects.get(user_name=name).following
         return jsonify([{'user_name': f.user_name, 'prof_pic': f.prof_pic, 'rank_points': f.rank_points} for f in following])
 
 
 class FollowersApi(Resource):
+    @user_does_not_exist_error
     @schema_val_error
     @internal_server_error
-    @user_does_not_exist_error
     def get(self, name):
         followers = User.objects.get(user_name=name).followers
         return jsonify([{'user_name': f.user_name, 'prof_pic': f.prof_pic, 'rank_points': f.rank_points} for f in followers])

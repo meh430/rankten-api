@@ -8,9 +8,9 @@ import datetime
 
 class SignUpApi(Resource):
     # create new user document and return generated jwt token
-    @internal_server_error
-    @schema_val_error
     @user_already_exists_error
+    @schema_val_error
+    @internal_server_error
     def post(self):
         body = request.get_json()
         user_lists = ListCollection()
@@ -26,10 +26,9 @@ class SignUpApi(Resource):
 
 class LoginApi(Resource):
     # return newly generated jwt token for login
-
+    @user_does_not_exist_error
     @schema_val_error
     @internal_server_error
-    @user_does_not_exist_error
     def post(self):
         body = request.get_json()
         user = User.objects.get(user_name=body['user_name'])
