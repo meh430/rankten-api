@@ -16,7 +16,7 @@ def init_routes(api):
 
     api.add_resource(RankedListsApi, '/rankedlist')
     api.add_resource(RankedListApi, '/rankedlist/<id>')
-    api.add_resource(UserRankedListsApi, '/rankedlist/<name>/<page>/<sort>')
+    api.add_resource(UserRankedListsApi, '/rankedlist/<name>/<page>')
 
     api.add_resource(FollowApi, '/follow/<name>')
     api.add_resource(FollowersApi, '/followers/<name>')
@@ -27,5 +27,5 @@ def init_routes(api):
     api.add_resource(LikeApi, '/like/<id>')
     api.add_resource(LikedListsApi, '/likes/<name>/<page>')
 
-    api.add_resource(SearchUsersApi, '/search_users')
-    api.add_resource(SearchListsApi, '/search_lists')
+    api.add_resource(SearchUsersApi, '/search_users/<page>/<sort>')
+    api.add_resource(SearchListsApi, '/search_lists/<page>/<sort>')

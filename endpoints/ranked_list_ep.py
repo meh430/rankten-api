@@ -3,8 +3,17 @@ from flask_restful import Resource
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from database.models import RankedList, User, ListCollection, RankItem
 from database.db import get_slice_bounds
-# manipulate a list
 from errors import check_ps
+
+
+def json_to_ref(body, user):
+    rank_items = []
+    for rlist in body['rank_list']:
+        r_item = RankItem(**rlist, belongs_to=user)
+        r_item.save()
+        rank_items.append(r_item)
+
+    return rank_items
 
 
 class RankedListApi(Resource):
@@ -16,18 +25,12 @@ class RankedListApi(Resource):
     # TODO: validate sent data
     @jwt_required
     def put(self, id):
-        # TODO: check if the req to update is coming from the owner of the list
         uid = get_jwt_identity()
         body = request.get_json()
-        curr_list = RankedList.objects.get(id=id, created_by=uid)
-        rank_items = []
+        user = User.objects.get(id=uid)
+        curr_list = RankedList.objects.get(id=id, created_by=user)
         if 'rank_list' in body:
-            for rlist in body['rank_list']:
-                r_item = RankItem(**rlist, belongs_to=user)
-                r_item.save()
-                rank_items.append(r_item)
-
-            curr_list.update(rank_list=rank_items)
+            curr_list.update(rank_list=json_to_ref(body, user))
 
         curr_list.update(**body)
 
@@ -60,13 +63,8 @@ class RankedListsApi(Resource):
                                   user_name=user.user_name)
         new_list.save()
 
-        rank_items = []
         if 'rank_list' in body:
-            for rlist in body['rank_list']:
-                r_item = RankItem(**rlist, belongs_to=user)
-                r_item.save()
-                rank_items.append(r_item)
-            new_list.update(rank_list=rank_items)
+            new_list.update(rank_list=json_to_ref(body, user))
 
         user.created_lists.update(push__rank_lists=new_list)
         user.update(inc__list_num=1)
@@ -75,10 +73,8 @@ class RankedListsApi(Resource):
 
 class UserRankedListsApi(Resource):
     # returns lists created by a specific user
-    # TODO: implement sort options like newest, oldest or most liked
-
     @check_ps
-    def get(self, name, page, sort):
+    def get(self, name, page):
         user = User.objects.get(user_name=name)
         user_lists = user.created_lists.rank_lists
         list_len = len(user_lists)

@@ -36,7 +36,7 @@ class LikeApi(Resource):
     # returns list of users that liked a list
     def get(self, id):
         curr_list = RankedList.objects.get(id=id)
-        return jsonify([{'user_name': liker.user_name} for liker in curr_list.liked_users])
+        return jsonify([{'user_name': liker.user_name, 'prof_pic': liker.prof_pic, 'rank_points': liker.rank_points} for liker in curr_list.liked_users])
 
 
 class LikeCommentApi(Resource):
@@ -47,7 +47,6 @@ class LikeCommentApi(Resource):
         comment = Comment.objects.get(id=id)
 
         exec_like = user not in comment.liked_by
-        # increase like num for comment, add yourself to the like list
         if exec_like:
             comment.update(inc__num_likes=1, push__liked_users=user)
         else:
@@ -58,9 +57,8 @@ class LikeCommentApi(Resource):
 
 class LikedListsApi(Resource):
     # return all the lists liked by a user
-    # TODO: implement sort options like newest, oldest or most liked
     @check_ps
-    def get(self, name, page, sort):
+    def get(self, name, page):
         user = User.objects.get(user_name=name)
         liked_lists = user.created_lists.liked_lists
         list_len = len(liked_lists)

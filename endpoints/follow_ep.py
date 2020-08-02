@@ -31,10 +31,10 @@ class FollowApi(Resource):
 class FollowingApi(Resource):
     def get(self, name):
         following = User.objects.get(user_name=name).following
-        return jsonify([{'user_name': f.user_name} for f in following])
+        return jsonify([{'user_name': f.user_name, 'prof_pic': f.prof_pic, 'rank_points': f.rank_points} for f in following])
 
 
 class FollowersApi(Resource):
     def get(self, name):
         followers = User.objects.get(user_name=name).followers
-        return jsonify([{'user_name': f.user_name} for f in followers])
+        return jsonify([{'user_name': f.user_name, 'prof_pic': f.prof_pic, 'rank_points': f.rank_points} for f in followers])
