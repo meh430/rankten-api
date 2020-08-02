@@ -1,7 +1,7 @@
-from flask import Response, request, jsonify
-from database.models import RankedList
+from flask import request, jsonify
 from flask_restful import Resource
 from database.db import get_slice_bounds
+from database.models import RankedList
 from errors import *
 
 

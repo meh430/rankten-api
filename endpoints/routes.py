@@ -1,10 +1,11 @@
-from .auth import SignUpApi, LoginApi
-from .users_ep import UsersApi, UserApi
-from .ranked_list_ep import RankedListsApi, RankedListApi, UserRankedListsApi
-from .follow_ep import FollowApi, FollowersApi, FollowingApi
-from .discover_ep import DiscoverApi
-from .like_ep import LikeApi, LikedListsApi
-from .search_ep import SearchListsApi, SearchUsersApi
+from .auth import *
+from .users_ep import *
+from .ranked_list_ep import *
+from .follow_ep import *
+from .discover_ep import *
+from .like_ep import *
+from .search_ep import *
+from .comment_ep import *
 
 
 def init_routes(api):

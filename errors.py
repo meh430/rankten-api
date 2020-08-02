@@ -31,6 +31,18 @@ class RankedListDoesNotExistError(Exception):
     pass
 
 
+class RankItemUpdateError(Exception):
+    pass
+
+
+class RankItemDeleteError(Exception):
+    pass
+
+
+class RankItemDoesNotExistError(Exception):
+    pass
+
+
 class InvalidPageError(Exception):
     pass
 
@@ -44,6 +56,14 @@ class FollowError(Exception):
 
 
 class CommentDoesNotExistError(Exception):
+    pass
+
+
+class CommentUpdateError(Exception):
+    pass
+
+
+class CommentDeleteError(Exception):
     pass
 
 
@@ -84,7 +104,7 @@ def schema_val_error(func):
     def wrapper(*args, **kwargs):
         try:
             func(*args, **kwargs)
-        except (FieldDoesNotExist, ValidationError, InvalidQueryError):
+        except (FieldDoesNotExist, ValidationError, InvalidQueryError, KeyError):
             raise SchemaValidationError
 
     return wrapper
@@ -140,12 +160,62 @@ def list_does_not_exist_error(func):
     return wrapper
 
 
+def rank_update_error(func):
+    def wrapper(*args, **kwargs):
+        try:
+            func(*args, **kwargs)
+        except DoesNotExist:
+            raise RankItemUpdateError
+
+    return wrapper
+
+
+def rank_delete_error(func):
+    def wrapper(*args, **kwargs):
+        try:
+            func(*args, **kwargs)
+        except DoesNotExist:
+            raise RankItemDeleteError
+
+    return wrapper
+
+
+def rank_does_not_exist_error(func):
+    def wrapper(*args, **kwargs):
+        try:
+            func(*args, **kwargs)
+        except DoesNotExist:
+            raise RankItemDoesNotExistError
+
+    return wrapper
+
+
 def comment_does_not_exist_error(func):
     def wrapper(*args, **kwargs):
         try:
             func(*args, **kwargs)
         except DoesNotExist:
             raise CommentDoesNotExistError
+
+    return wrapper
+
+
+def comment_update_error(func):
+    def wrapper(*args, **kwargs):
+        try:
+            func(*args, **kwargs)
+        except DoesNotExist:
+            raise CommentUpdateError
+
+    return wrapper
+
+
+def comment_delete_error(func):
+    def wrapper(*args, **kwargs):
+        try:
+            func(*args, **kwargs)
+        except DoesNotExist:
+            raise CommentDeleteError
 
     return wrapper
 
@@ -179,6 +249,18 @@ error_dict = {
         "message": "List with given id already exists",
         "status": 400
     },
+    "RankItemDoesNotExistError": {
+        "message": "Rank item with given id does not exist",
+        "status": 400
+    },
+    "RankItemUpdateError": {
+        "message": "Updating rank item made by other is forbidden",
+        "status": 403
+    },
+    "RankItemDeleteError": {
+        "message": "Deleting ank item made by other is forbidden",
+        "status": 403
+    },
     "InvalidPageError": {
         "message": "Trying to access a page that does not exist",
         "status": 400
@@ -194,6 +276,14 @@ error_dict = {
     "CommentDoesNotExistError": {
         "message": "Comment with given id does not exist",
         "status": 400
+    },
+    "CommentUpdateError": {
+        "message": "Updating comment made by other is forbidden",
+        "status": 403
+    },
+    "CommentDeleteError": {
+        "message": "Deleting comment made by other is forbidden",
+        "status": 403
     },
     "UnauthorizedError": {
         "message": "Invalid username or password",

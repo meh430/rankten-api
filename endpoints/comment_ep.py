@@ -1,4 +1,4 @@
-from flask import Response, request, jsonify
+from flask import request, jsonify
 from flask_restful import Resource
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from database.models import *
@@ -7,12 +7,18 @@ from database.db import get_slice_bounds
 
 
 class CommentApi(Resource):
+    @list_does_not_exist_error
+    @schema_val_error
+    @internal_server_error
     def get(self, id):
         # id here is list id
         rank_list_comments = RankedList.objects.get(id=id).comment_section
         return {'num_comments': rank_list_comments.num_comments}, 200
 
     @jwt_required
+    @list_does_not_exist_error
+    @schema_val_error
+    @internal_server_error
     def post(self, id):
         # id here is list id
         body = request.get_json()
@@ -28,9 +34,12 @@ class CommentApi(Resource):
         comment = Comment(**body, made_by=user, belongs_to=rank_list_comments)
         comment.save()
         rank_list_comments.update(push__comments=comment, inc__num_comments=1)
-        return 'Created comment', 200
+        return {'_id': comment.id}, 200
 
     @jwt_required
+    @comment_update_error
+    @schema_val_error
+    @internal_server_error
     def put(self, id):
         body = request.get_json()
         uid = get_jwt_identity()
@@ -43,6 +52,9 @@ class CommentApi(Resource):
         return 'Updated comment', 200
 
     @jwt_required
+    @comment_delete_error
+    @schema_val_error
+    @internal_server_error
     def delete(self, id):
         uid = get_jwt_identity()
         user = User.objects.get(id=uid)
@@ -55,6 +67,9 @@ class CommentApi(Resource):
 
 class CommentsApi(Resource):
     @check_ps
+    @list_does_not_exist_error
+    @schema_val_error
+    @internal_server_error
     def get(self, id, page, sort):
         rank_list_comments = []
         if sort == 0:

@@ -7,7 +7,7 @@ class User(db.Document):
     date_created = db.DateTimeField(default=datetime.datetime.utcnow)
 
     user_name = db.StringField(required=True, unique=True, max_length=15)
-    password = db.StringField(required=True, min_length=6)
+    password = db.StringField(required=True, min_length=6, max_length=128)
 
     bio = db.StringField()
     prof_pic = db.StringField()
@@ -31,6 +31,7 @@ class User(db.Document):
 
 
 class RankItem(db.Document):
+    created_by = db.ReferenceField('User', reverse_delete_rule=db.CASCADE)
     belongs_to = db.ReferenceField('RankedList')
     item_name = db.StringField(required=True)
     rank = db.IntField(required=True)
@@ -43,7 +44,7 @@ class RankedList(db.Document):
     created_by = db.ReferenceField('User', reverse_delete_rule=db.CASCADE)
     user_name = db.StringField(required=True)
     title = db.StringField(required=True)
-    num_likes = db.IntField(required=True, default=0)
+    num_likes = db.IntField(default=0)
     liked_users = db.ListField(db.ReferenceField(
         'User', reverse_delete_rule=db.PULL))
     rank_list = db.ListField(db.ReferenceField(

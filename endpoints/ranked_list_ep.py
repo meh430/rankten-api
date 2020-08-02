@@ -6,14 +6,13 @@ from database.db import get_slice_bounds
 from errors import *
 
 
-def json_to_ref(body, user):
-    rank_items = []
-    for rlist in body['rank_list']:
-        r_item = RankItem(**rlist, belongs_to=user)
-        r_item.save()
-        rank_items.append(r_item)
-
-    return rank_items
+def json_to_ref(json_list, list_ref, user):
+    rank_list = []
+    for r_item in json_list:
+        rank_item = RankItem(**r_item, belongs_to=list_ref, created_by=user)
+        rank_item.save()
+        rank_list.append(rank_item)
+    return rank_list
 
 
 class RankedListApi(Resource):
@@ -34,11 +33,7 @@ class RankedListApi(Resource):
         body = request.get_json()
         user = User.objects.get(id=uid)
         curr_list = RankedList.objects.get(id=id, created_by=user)
-        if 'rank_list' in body:
-            curr_list.update(rank_list=json_to_ref(body, user))
-
         curr_list.update(**body)
-
         return 'Updated ranked list', 200
 
     # delete specified list
@@ -81,7 +76,7 @@ class RankedListsApi(Resource):
 
         user.created_lists.update(push__rank_lists=new_list)
         user.update(inc__list_num=1)
-        return {'id': str(new_list.id)}, 200
+        return {'id': new_list.id}, 200
 
 
 class UserRankedListsApi(Resource):

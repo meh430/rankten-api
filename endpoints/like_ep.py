@@ -1,8 +1,8 @@
-from flask import Response, request, jsonify
-from database.models import RankedList, User, Comment
+from flask import request, jsonify
 from flask_restful import Resource
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from database.db import get_slice_bounds
+from database.models import *
 from errors import *
 
 
@@ -55,11 +55,13 @@ class LikeCommentApi(Resource):
         user = User.objects.get(id=uid)
         comment = Comment.objects.get(id=id)
 
-        exec_like = user not in comment.liked_by
+        exec_like = user not in comment.liked_users
         if exec_like:
             comment.update(inc__num_likes=1, push__liked_users=user)
+            comment.made_by.update(inc__rank_points=1)
         else:
             comment.update(dec__num_likes=1, pull__liked_users=user)
+            comment.made_by.update(dec__rank_points=1)
 
         return ('liked comment' if exec_like else 'unliked comment'), 200
 
