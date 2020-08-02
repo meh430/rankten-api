@@ -3,7 +3,7 @@ from flask_restful import Resource
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from database.models import RankedList, User, ListCollection, RankItem
 from database.db import get_slice_bounds
-from errors import check_ps
+from errors import *
 
 
 def json_to_ref(body, user):
@@ -18,11 +18,17 @@ def json_to_ref(body, user):
 
 class RankedListApi(Resource):
     # get specified list data
+    @list_does_not_exist_error
+    @schema_val_error
+    @internal_server_error
     def get(self, id):
         return Response(RankedList.objects.get(id=id).to_json(), mimetype='application/json', status=200)
 
     # update specified list
     # TODO: validate sent data
+    @list_update_error
+    @schema_val_error
+    @internal_server_error
     @jwt_required
     def put(self, id):
         uid = get_jwt_identity()
@@ -37,6 +43,9 @@ class RankedListApi(Resource):
         return 'Updated ranked list', 200
 
     # delete specified list
+    @list_delete_error
+    @schema_val_error
+    @internal_server_error
     @jwt_required
     def delete(self, id):
         uid = get_jwt_identity()
@@ -50,6 +59,8 @@ class RankedListApi(Resource):
 class RankedListsApi(Resource):
     # create new list
     @jwt_required
+    @schema_val_error
+    @internal_server_error
     def post(self):
         # create post, add user to post, add post to list collection of user
         uid = get_jwt_identity()
@@ -74,12 +85,15 @@ class RankedListsApi(Resource):
 class UserRankedListsApi(Resource):
     # returns lists created by a specific user
     @check_ps
+    @user_does_not_exist_error
+    @schema_val_error
+    @internal_server_error
     def get(self, name, page):
         user = User.objects.get(user_name=name)
         user_lists = user.created_lists.rank_lists
         list_len = len(user_lists)
         lower, upper = get_slice_bounds(page)
         if lower >= list_len:
-            return 'Invalid page', 400
+            raise InvalidPageError
         upper = list_len if upper >= list_len else upper
         return jsonify(user_lists[lower:upper])

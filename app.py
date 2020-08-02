@@ -1,15 +1,16 @@
+from config import JWT_SECRET_KEY
 from flask import Flask
 from flask_restful import Api
 from flask_bcrypt import Bcrypt
 from flask_jwt_extended import JWTManager
 from database.db import init_db
 from endpoints.routes import init_routes
-from config import JWT_SECRET_KEY
+from errors import error_dict
 # TODO: error handling
 app = Flask(__name__)
 app.config['JWT_SECRET_KEY'] = JWT_SECRET_KEY
 
-api = Api(app)
+api = Api(app, errors=error_dict)
 bcrypt = Bcrypt(app)
 jwt = JWTManager(app)
 

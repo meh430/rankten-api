@@ -3,11 +3,14 @@ from database.models import RankedList, User, Comment
 from flask_restful import Resource
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from database.db import get_slice_bounds
-from errors import check_ps
+from errors import *
 
 
 class LikeApi(Resource):
     # like/unlike a post
+    @internal_server_error
+    @schema_val_error
+    @list_does_not_exist_error
     @jwt_required
     def post(self, id):
         # get curr user info
@@ -34,6 +37,9 @@ class LikeApi(Resource):
         return ('liked list' if exec_like else 'unliked list'), 200
 
     # returns list of users that liked a list
+    @internal_server_error
+    @schema_val_error
+    @list_does_not_exist_error
     def get(self, id):
         curr_list = RankedList.objects.get(id=id)
         return jsonify([{'user_name': liker.user_name, 'prof_pic': liker.prof_pic, 'rank_points': liker.rank_points} for liker in curr_list.liked_users])
@@ -41,6 +47,9 @@ class LikeApi(Resource):
 
 class LikeCommentApi(Resource):
     @jwt_required
+    @schema_val_error
+    @comment_does_not_exist_error
+    @internal_server_error
     def post(self, id):
         uid = get_jwt_identity()
         user = User.objects.get(id=uid)
@@ -57,6 +66,9 @@ class LikeCommentApi(Resource):
 
 class LikedListsApi(Resource):
     # return all the lists liked by a user
+    @user_does_not_exist_error
+    @schema_val_error
+    @internal_server_error
     @check_ps
     def get(self, name, page):
         user = User.objects.get(user_name=name)
@@ -64,6 +76,6 @@ class LikedListsApi(Resource):
         list_len = len(liked_lists)
         lower, upper = get_slice_bounds(page)
         if lower >= list_len:
-            return 'Invalid page', 400
+            raise InvalidPageError
         upper = list_len if upper >= list_len else upper
         return jsonify(liked_lists[lower:upper])
