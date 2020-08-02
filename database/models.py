@@ -56,9 +56,13 @@ RankedList.register_delete_rule(RankItem, 'belongs_to', db.CASCADE)
 
 
 class Comment(db.Document):
+    belongs_to = db.ReferenceField('CommentSection')
     made_by = db.ReferenceField('User', reverse_delete_rule=db.CASCADE)
     user_name = db.StringField(required=True)
+    prof_pic = db.StringField()
+    date_created = db.DateTimeField(default=datetime.datetime.utcnow)
     comment = db.StringField(required=True)
+    edited = db.BooleanField(default=false)
     num_likes = db.IntField(default=0)
     liked_users = db.ListField(db.ReferenceField(
         'User', reverse_delete_rule=db.PULL))
@@ -69,6 +73,10 @@ class CommentSection(db.Document):
         'RankedList', reverse_delete_rule=db.CASCADE)
     comments = db.ListField(db.ReferenceField(
         'Comment', reverse_delete_rule=db.PULL))
+    num_comments = db.IntField(default=0)
+
+
+CommentSection.register_delete_rule(Comment, 'belongs_to', db.CASCADE)
 
 
 class ListCollection(db.Document):

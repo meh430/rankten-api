@@ -1,7 +1,7 @@
 from flask import Response, request, jsonify
 from flask_restful import Resource
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from database.models import RankedList, User, ListCollection, RankItem
+from database.models import *
 from database.db import get_slice_bounds
 from errors import *
 
@@ -66,13 +66,16 @@ class RankedListsApi(Resource):
         user = User.objects.get(id=uid)
         body = request.get_json()
         new_list = None
+        commentSection = CommentSection()
+        commentSection.save()
         if 'user_name' in body:
-            new_list = RankedList(**body, created_by=user)
+            new_list = RankedList(**body, created_by=user,
+                                  comment_section=commentSection)
         else:
             new_list = RankedList(**body, created_by=user,
-                                  user_name=user.user_name)
+                                  user_name=user.user_name, comment_section=commentSection)
         new_list.save()
-
+        commentSection.update(belongs_to=new_list)
         if 'rank_list' in body:
             new_list.update(rank_list=json_to_ref(body, user))
 
@@ -87,9 +90,18 @@ class UserRankedListsApi(Resource):
     @user_does_not_exist_error
     @schema_val_error
     @internal_server_error
-    def get(self, name, page):
+    def get(self, name, page, sort):
         user = User.objects.get(user_name=name)
-        user_lists = user.created_lists.rank_lists
+        user_lists = []
+        if sort == 0:
+            user_lists = sorted(user.created_lists.rank_lists,
+                                key=lambda k: k.num_likes, reverse=True)
+        elif sort == 1:
+            user_lists = sorted(user.created_lists.rank_lists,
+                                key=lambda k: k.date_created, reverse=True)
+        elif sort == 2:
+            user_lists = sorted(user.created_lists.rank_lists,
+                                key=lambda k: k.date_created, reverse=False)
         list_len = len(user_lists)
         lower, upper = get_slice_bounds(page)
         if lower >= list_len:

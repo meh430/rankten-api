@@ -70,9 +70,18 @@ class LikedListsApi(Resource):
     @user_does_not_exist_error
     @schema_val_error
     @internal_server_error
-    def get(self, name, page):
+    def get(self, name, page, sort):
         user = User.objects.get(user_name=name)
-        liked_lists = user.created_lists.liked_lists
+        liked_lists = []
+        if sort == 0:
+            liked_lists = sorted(user.created_lists.liked_lists,
+                                 key=lambda k: k.num_likes, reverse=True)
+        elif sort == 1:
+            liked_lists = sorted(user.created_lists.liked_lists,
+                                 key=lambda k: k.date_created, reverse=True)
+        elif sort == 2:
+            liked_lists = sorted(user.created_lists.liked_lists,
+                                 key=lambda k: k.date_created, reverse=False)
         list_len = len(liked_lists)
         lower, upper = get_slice_bounds(page)
         if lower >= list_len:
