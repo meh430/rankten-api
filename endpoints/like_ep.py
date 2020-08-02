@@ -1,8 +1,9 @@
 from flask import Response, request, jsonify
-from database.models import RankedList, User
+from database.models import RankedList, User, Comment
 from flask_restful import Resource
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from database.db import get_slice_bounds
+from errors import check_ps
 
 
 class LikeApi(Resource):
@@ -35,22 +36,36 @@ class LikeApi(Resource):
     # returns list of users that liked a list
     def get(self, id):
         curr_list = RankedList.objects.get(id=id)
-        like_list = []
-        for liker in curr_list.liked_users:
-            like_list.append({'user_name': liker.user_name})
-
-        return jsonify(like_list)
+        return jsonify([{'user_name': liker.user_name} for liker in curr_list.liked_users])
 
 
 class LikeCommentApi(Resource):
-    pass
+    @jwt_required
+    def post(self, id):
+        uid = get_jwt_identity()
+        user = User.objects.get(id=uid)
+        comment = Comment.objects.get(id=id)
+
+        exec_like = user not in comment.liked_by
+        # increase like num for comment, add yourself to the like list
+        if exec_like:
+            comment.update(inc__num_likes=1, push__liked_users=user)
+        else:
+            comment.update(dec__num_likes=1, pull__liked_users=user)
+
+        return ('liked comment' if exec_like else 'unliked comment'), 200
 
 
 class LikedListsApi(Resource):
     # return all the lists liked by a user
     # TODO: implement sort options like newest, oldest or most liked
-    def get(self, name, page):
+    @check_ps
+    def get(self, name, page, sort):
         user = User.objects.get(user_name=name)
-        list_coll = user.created_lists
+        liked_lists = user.created_lists.liked_lists
+        list_len = len(liked_lists)
         lower, upper = get_slice_bounds(page)
-        return jsonify(list_coll.liked_lists[lower:upper])
+        if lower >= list_len:
+            return 'Invalid page', 400
+        upper = list_len if upper >= list_len else upper
+        return jsonify(liked_lists[lower:upper])

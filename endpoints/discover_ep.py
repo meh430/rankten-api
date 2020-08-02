@@ -2,25 +2,17 @@ from flask import Response, request, jsonify
 from database.models import RankedList
 from flask_restful import Resource
 from database.db import get_slice_bounds
-# 0: most liked, 1: new, 2: old
-sort_options = {0: '-num_likes', 1: '-date_created', 2: '+date_created'}
+from errors import check_ps
 
 
 class DiscoverApi(Resource):
-    def get(self, page, sort):
-        if page <= 0:
-            return 'Invalid page num', 400
 
-        if sort not in sort_options:
-            sort = 0
-
+    @check_ps
+    def get(self, page: int, sort: int):
         lower, upper = get_slice_bounds(page)
         all_lists = RankedList.objects().order_by(sort_options[sort])
-        list_len = len(all_lists)
-
+        list_len = RankedList.objects.count()
         if lower >= list_len:
-            return 'Invalid page num', 400
-
+            return 'Invalid page', 400
         upper = list_len if upper >= list_len else upper
-
-        return jsonify(RankedList.objects[lower:upper])
+        return jsonify(all_lists[lower:upper])

@@ -26,4 +26,4 @@ def method_name():
 init_db(app)
 init_routes(api)
 
-app.run(host='0.0.0.0', port=5000)
+app.run(port=5000)

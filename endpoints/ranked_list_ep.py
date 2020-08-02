@@ -1,9 +1,10 @@
 from flask import Response, request, jsonify
 from flask_restful import Resource
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from database.models import RankedList, User, ListCollection
+from database.models import RankedList, User, ListCollection, RankItem
 from database.db import get_slice_bounds
 # manipulate a list
+from errors import check_ps
 
 
 class RankedListApi(Resource):
@@ -18,7 +19,18 @@ class RankedListApi(Resource):
         # TODO: check if the req to update is coming from the owner of the list
         uid = get_jwt_identity()
         body = request.get_json()
-        RankedList.objects.get(id=id, created_by=uid).update(**body)
+        curr_list = RankedList.objects.get(id=id, created_by=uid)
+        rank_items = []
+        if 'rank_list' in body:
+            for rlist in body['rank_list']:
+                r_item = RankItem(**rlist, belongs_to=user)
+                r_item.save()
+                rank_items.append(r_item)
+
+            curr_list.update(rank_list=rank_items)
+
+        curr_list.update(**body)
+
         return 'Updated ranked list', 200
 
     # delete specified list
@@ -47,8 +59,16 @@ class RankedListsApi(Resource):
             new_list = RankedList(**body, created_by=user,
                                   user_name=user.user_name)
         new_list.save()
+
+        rank_items = []
+        if 'rank_list' in body:
+            for rlist in body['rank_list']:
+                r_item = RankItem(**rlist, belongs_to=user)
+                r_item.save()
+                rank_items.append(r_item)
+            new_list.update(rank_list=rank_items)
+
         user.created_lists.update(push__rank_lists=new_list)
-        user.created_lists.save()
         user.update(inc__list_num=1)
         return {'id': str(new_list.id)}, 200
 
@@ -56,9 +76,14 @@ class RankedListsApi(Resource):
 class UserRankedListsApi(Resource):
     # returns lists created by a specific user
     # TODO: implement sort options like newest, oldest or most liked
-    def get(self, name, page):
-        user = User.objects.get(user_name=name)
-        list_coll = user.created_lists
-        lower, upper = get_slice_bounds(page)
 
-        return jsonify(list_coll.rank_lists[lower:upper])
+    @check_ps
+    def get(self, name, page, sort):
+        user = User.objects.get(user_name=name)
+        user_lists = user.created_lists.rank_lists
+        list_len = len(user_lists)
+        lower, upper = get_slice_bounds(page)
+        if lower >= list_len:
+            return 'Invalid page', 400
+        upper = list_len if upper >= list_len else upper
+        return jsonify(user_lists[lower:upper])

@@ -33,7 +33,7 @@ class User(db.Document):
 class RankItem(db.Document):
     belongs_to = db.ReferenceField('RankedList')
     item_name = db.StringField(required=True)
-    rank = db.IntField(default=0)
+    rank = db.IntField(required=True)
     description = db.StringField()
     picture = db.StringField()
 
@@ -59,7 +59,9 @@ class Comment(db.Document):
     made_by = db.ReferenceField('User', reverse_delete_rule=db.CASCADE)
     user_name = db.StringField(required=True)
     comment = db.StringField(required=True)
-    likes = db.IntField(default=0)
+    num_likes = db.IntField(default=0)
+    liked_users = db.ListField(db.ReferenceField(
+        'User', reverse_delete_rule=db.PULL))
 
 
 class CommentSection(db.Document):
