@@ -68,12 +68,14 @@ class LikeCommentApi(Resource):
 
 class LikedListsApi(Resource):
     # return all the lists liked by a user
+    @jwt_required
     @check_ps
     @user_does_not_exist_error
     @schema_val_error
     @internal_server_error
-    def get(self, name, page, sort):
-        user = User.objects.get(user_name=name)
+    def get(self, page: int, sort: int):
+        uid = get_jwt_identity()
+        user = User.objects.get(id=uid)
         liked_lists = []
         if sort == 0:
             liked_lists = sorted(user.created_lists.liked_lists,

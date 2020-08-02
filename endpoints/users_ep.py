@@ -30,5 +30,5 @@ class UserApi(Resource):
     @user_does_not_exist_error
     @schema_val_error
     @internal_server_error
-    def get(self, name):
+    def get(self, name: str):
         return Response(User.objects.get(user_name=name).to_json(), mimetype='application/json', status=200)

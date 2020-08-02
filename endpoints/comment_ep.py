@@ -70,7 +70,7 @@ class CommentsApi(Resource):
     @list_does_not_exist_error
     @schema_val_error
     @internal_server_error
-    def get(self, id, page, sort):
+    def get(self, id, page: int, sort: int):
         rank_list_comments = []
         if sort == 0:
             rank_list_comments = sorted(RankedList.objects.get(

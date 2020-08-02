@@ -85,7 +85,7 @@ class UserRankedListsApi(Resource):
     @user_does_not_exist_error
     @schema_val_error
     @internal_server_error
-    def get(self, name, page, sort):
+    def get(self, name: str, page: int, sort: int):
         user = User.objects.get(user_name=name)
         user_lists = []
         if sort == 0:

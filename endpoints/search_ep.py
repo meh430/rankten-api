@@ -9,7 +9,7 @@ class SearchUsersApi(Resource):
     @check_ps
     @schema_val_error
     @internal_server_error
-    def get(self, page, sort):
+    def get(self, page: int, sort: int):
         query = request.args.get('q')
         result = User.objects(user_name__icontains=query).only(
             'user_name', 'rank_points', 'prof_pic').order_by(sort_options[sort])
@@ -28,7 +28,7 @@ class SearchListsApi(Resource):
     @check_ps
     @schema_val_error
     @internal_server_error
-    def get(self, page, sort):
+    def get(self, page: int, sort: int):
         query = request.args.get('q')
         query = query.replace('+', ' ')
 
