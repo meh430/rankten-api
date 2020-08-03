@@ -2,25 +2,6 @@ import requests
 import random
 
 
-class RankItem:
-    def __init__(self, item_name, rank, description=None, picture=None):
-        self.item_name = item_name
-        self.rank = rank
-        self.description = description
-        self.picture = picture
-
-    def to_dict(self):
-        rankItem = {}
-        rankItem['item_name'] = self.item_name
-        rankItem['rank'] = self.rank
-        if self.description:
-            rankItem['description'] = self.description
-        if self.picture:
-            rankItem['picture'] = self.picture
-
-        return rankItem
-
-
 # create some users and store returned jwt tokens
 # have other users follow one user
 # create some posts for each person
@@ -77,7 +58,7 @@ for user in user_data:
 print('done following')
 
 # create lists for each person
-data_topics = ['Xbox Games', 'PLaystation Games', 'Phones', 'Anime', 'Horror Movies', 'Comedy Movies', 'World Leaders',
+data_topics = ['Xbox Games', 'Playstation Games', 'Phones', 'Anime', 'Horror Movies', 'Comedy Movies', 'World Leaders',
                'Actors', 'Plants', 'Colors', 'Fruits', 'Companies', 'Books', 'Shoes', 'Watches', 'YouTubers', 'TV Shows',
                'Languages', 'Programming Languages', 'Vacation Spots', 'Animals']
 

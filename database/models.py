@@ -63,7 +63,7 @@ class Comment(db.Document):
     prof_pic = db.StringField()
     date_created = db.DateTimeField(default=datetime.datetime.utcnow)
     comment = db.StringField(required=True)
-    edited = db.BooleanField(default=false)
+    edited = db.BooleanField(default=False)
     num_likes = db.IntField(default=0)
     liked_users = db.ListField(db.ReferenceField(
         'User', reverse_delete_rule=db.PULL))

@@ -83,9 +83,9 @@ def check_ps(func):
             sort = 0
 
         if 'sort' in kwargs:
-            func(*args, page=page, sort=sort, **kwargs)
+            return func(*args, page=page, sort=sort, **kwargs)
         else:
-            func(*args, page=page, **kwargs)
+            return func(*args, page=page, **kwargs)
 
     return wrapper
 
@@ -93,7 +93,7 @@ def check_ps(func):
 def internal_server_error(func):
     def wrapper(*args, **kwargs):
         try:
-            func(*args, **kwargs)
+            return func(*args, **kwargs)
         except Exception:
             raise InternalServerError
 
@@ -103,7 +103,7 @@ def internal_server_error(func):
 def schema_val_error(func):
     def wrapper(*args, **kwargs):
         try:
-            func(*args, **kwargs)
+            return func(*args, **kwargs)
         except (FieldDoesNotExist, ValidationError, InvalidQueryError, KeyError):
             raise SchemaValidationError
 
@@ -113,7 +113,7 @@ def schema_val_error(func):
 def user_does_not_exist_error(func):
     def wrapper(*args, **kwargs):
         try:
-            func(*args, **kwargs)
+            return func(*args, **kwargs)
         except DoesNotExist:
             raise UserDoesNotExistError
 
@@ -123,7 +123,7 @@ def user_does_not_exist_error(func):
 def user_already_exists_error(func):
     def wrapper(*args, **kwargs):
         try:
-            func(*args, **kwargs)
+            return func(*args, **kwargs)
         except NotUniqueError:
             raise UserAlreadyExistsError
 
@@ -133,7 +133,7 @@ def user_already_exists_error(func):
 def list_update_error(func):
     def wrapper(*args, **kwargs):
         try:
-            func(*args, **kwargs)
+            return func(*args, **kwargs)
         except DoesNotExist:
             raise RankedListUpdateError
 
@@ -143,7 +143,7 @@ def list_update_error(func):
 def list_delete_error(func):
     def wrapper(*args, **kwargs):
         try:
-            func(*args, **kwargs)
+            return func(*args, **kwargs)
         except DoesNotExist:
             raise RankedListDeleteError
 
@@ -153,7 +153,7 @@ def list_delete_error(func):
 def list_does_not_exist_error(func):
     def wrapper(*args, **kwargs):
         try:
-            func(*args, **kwargs)
+            return func(*args, **kwargs)
         except DoesNotExist:
             raise RankedListDoesNotExistError
 
@@ -163,7 +163,7 @@ def list_does_not_exist_error(func):
 def rank_update_error(func):
     def wrapper(*args, **kwargs):
         try:
-            func(*args, **kwargs)
+            return func(*args, **kwargs)
         except DoesNotExist:
             raise RankItemUpdateError
 
@@ -173,7 +173,7 @@ def rank_update_error(func):
 def rank_delete_error(func):
     def wrapper(*args, **kwargs):
         try:
-            func(*args, **kwargs)
+            return func(*args, **kwargs)
         except DoesNotExist:
             raise RankItemDeleteError
 
@@ -183,7 +183,7 @@ def rank_delete_error(func):
 def rank_does_not_exist_error(func):
     def wrapper(*args, **kwargs):
         try:
-            func(*args, **kwargs)
+            return func(*args, **kwargs)
         except DoesNotExist:
             raise RankItemDoesNotExistError
 
@@ -193,7 +193,7 @@ def rank_does_not_exist_error(func):
 def comment_does_not_exist_error(func):
     def wrapper(*args, **kwargs):
         try:
-            func(*args, **kwargs)
+            return func(*args, **kwargs)
         except DoesNotExist:
             raise CommentDoesNotExistError
 
@@ -203,7 +203,7 @@ def comment_does_not_exist_error(func):
 def comment_update_error(func):
     def wrapper(*args, **kwargs):
         try:
-            func(*args, **kwargs)
+            return func(*args, **kwargs)
         except DoesNotExist:
             raise CommentUpdateError
 
@@ -213,7 +213,7 @@ def comment_update_error(func):
 def comment_delete_error(func):
     def wrapper(*args, **kwargs):
         try:
-            func(*args, **kwargs)
+            return func(*args, **kwargs)
         except DoesNotExist:
             raise CommentDeleteError
 
