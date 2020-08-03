@@ -19,7 +19,6 @@ class RankedListApi(Resource):
     # get specified list data
     @list_does_not_exist_error
     @schema_val_error
-    @internal_server_error
     def get(self, id):
         return Response(RankedList.objects.get(id=id).to_json(), mimetype='application/json', status=200)
 
@@ -27,7 +26,6 @@ class RankedListApi(Resource):
     @jwt_required
     @list_update_error
     @schema_val_error
-    @internal_server_error
     def put(self, id):
         uid = get_jwt_identity()
         body = request.get_json()
@@ -40,7 +38,6 @@ class RankedListApi(Resource):
     @jwt_required
     @list_delete_error
     @schema_val_error
-    @internal_server_error
     def delete(self, id):
         uid = get_jwt_identity()
         user = User.objects.get(id=uid)
@@ -54,7 +51,6 @@ class RankedListsApi(Resource):
     # create new list
     @jwt_required
     @schema_val_error
-    @internal_server_error
     def post(self):
         # create post, add user to post, add post to list collection of user
         uid = get_jwt_identity()
@@ -72,11 +68,12 @@ class RankedListsApi(Resource):
         new_list.save()
         commentSection.update(belongs_to=new_list)
         if 'rank_list' in body:
-            new_list.update(rank_list=json_to_ref(body, user))
+            new_list.update(rank_list=json_to_ref(
+                body.pop('rank_list'), new_list, user))
 
         user.created_lists.update(push__rank_lists=new_list)
         user.update(inc__list_num=1)
-        return {'id': new_list.id}, 200
+        return {'id': str(new_list.id)}, 200
 
 
 class UserRankedListsApi(Resource):
@@ -84,7 +81,6 @@ class UserRankedListsApi(Resource):
     @check_ps
     @user_does_not_exist_error
     @schema_val_error
-    @internal_server_error
     def get(self, name: str, page: int, sort: int):
         user = User.objects.get(user_name=name)
         user_lists = []

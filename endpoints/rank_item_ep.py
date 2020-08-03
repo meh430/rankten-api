@@ -13,16 +13,14 @@ from errors import *
 class RankItemApi(Resource):
     @list_does_not_exist_error
     @schema_val_error
-    @internal_server_error
     def get(self, id):
         # id is list id
         return jsonify(sorted(RankedList.objects.get(
-            id=id).rank_list, lambda k: k.rank)), 200
+            id=id).rank_list, key=lambda k: k.rank))
 
     @jwt_required
     @list_does_not_exist_error
     @schema_val_error
-    @internal_server_error
     def post(self, id):
         # id is list id
         uid = get_jwt_identity()
@@ -38,7 +36,6 @@ class RankItemApi(Resource):
     @jwt_required
     @rank_delete_error
     @schema_val_error
-    @internal_server_error
     def delete(self, id):
         # id is rank item id
         uid = get_jwt_identity()
@@ -51,7 +48,6 @@ class RankItemApi(Resource):
     @jwt_required
     @rank_update_error
     @schema_val_error
-    @internal_server_error
     def put(self, id):
         # id is rank item id
         uid = get_jwt_identity()

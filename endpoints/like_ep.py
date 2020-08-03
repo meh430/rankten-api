@@ -11,7 +11,6 @@ class LikeApi(Resource):
     @jwt_required
     @list_does_not_exist_error
     @schema_val_error
-    @internal_server_error
     def post(self, id):
         # get curr user info
         uid = get_jwt_identity()
@@ -39,7 +38,6 @@ class LikeApi(Resource):
     # returns list of users that liked a list
     @list_does_not_exist_error
     @schema_val_error
-    @internal_server_error
     def get(self, id):
         curr_list = RankedList.objects.get(id=id)
         return jsonify([{'user_name': liker.user_name, 'prof_pic': liker.prof_pic, 'rank_points': liker.rank_points} for liker in curr_list.liked_users])
@@ -49,7 +47,6 @@ class LikeCommentApi(Resource):
     @jwt_required
     @comment_does_not_exist_error
     @schema_val_error
-    @internal_server_error
     def post(self, id):
         uid = get_jwt_identity()
         user = User.objects.get(id=uid)
@@ -72,7 +69,6 @@ class LikedListsApi(Resource):
     @check_ps
     @user_does_not_exist_error
     @schema_val_error
-    @internal_server_error
     def get(self, page: int, sort: int):
         uid = get_jwt_identity()
         user = User.objects.get(id=uid)

@@ -9,19 +9,21 @@ class User(db.Document):
     user_name = db.StringField(required=True, unique=True, max_length=15)
     password = db.StringField(required=True, min_length=6, max_length=128)
 
-    bio = db.StringField()
-    prof_pic = db.StringField()
+    bio = db.StringField(default="")
+    prof_pic = db.StringField(default="")
     rank_points = db.IntField(default=0)
 
     following_num = db.IntField(default=0)
     followers_num = db.IntField(default=0)
     following = db.ListField(db.ReferenceField(
-        'self', reverse_delete_rule=db.PULL))
+        'self', reverse_delete_rule=db.PULL), default=[])
     followers = db.ListField(db.ReferenceField(
-        'self', reverse_delete_rule=db.PULL))
+        'self', reverse_delete_rule=db.PULL), default=[])
 
     list_num = db.IntField(default=0)
     created_lists = db.ReferenceField('ListCollection')
+
+    comment_num = db.IntField(default=0)
 
     def hash_pass(self):
         self.password = generate_password_hash(self.password).decode('utf8')
@@ -35,8 +37,8 @@ class RankItem(db.Document):
     belongs_to = db.ReferenceField('RankedList')
     item_name = db.StringField(required=True)
     rank = db.IntField(required=True)
-    description = db.StringField()
-    picture = db.StringField()
+    description = db.StringField(default="")
+    picture = db.StringField(default="")
 
 
 class RankedList(db.Document):
@@ -46,7 +48,7 @@ class RankedList(db.Document):
     title = db.StringField(required=True)
     num_likes = db.IntField(default=0)
     liked_users = db.ListField(db.ReferenceField(
-        'User', reverse_delete_rule=db.PULL))
+        'User', reverse_delete_rule=db.PULL), default=[])
     rank_list = db.ListField(db.ReferenceField(
         'RankItem', reverse_delete_rule=db.PULL), max_length=10)
 
@@ -60,20 +62,20 @@ class Comment(db.Document):
     belongs_to = db.ReferenceField('CommentSection')
     made_by = db.ReferenceField('User', reverse_delete_rule=db.CASCADE)
     user_name = db.StringField(required=True)
-    prof_pic = db.StringField()
+    prof_pic = db.StringField(default="")
     date_created = db.DateTimeField(default=datetime.datetime.utcnow)
     comment = db.StringField(required=True)
     edited = db.BooleanField(default=False)
     num_likes = db.IntField(default=0)
     liked_users = db.ListField(db.ReferenceField(
-        'User', reverse_delete_rule=db.PULL))
+        'User', reverse_delete_rule=db.PULL), default=[])
 
 
 class CommentSection(db.Document):
     belongs_to = db.ReferenceField(
         'RankedList', reverse_delete_rule=db.CASCADE)
     comments = db.ListField(db.ReferenceField(
-        'Comment', reverse_delete_rule=db.PULL))
+        'Comment', reverse_delete_rule=db.PULL), default=[])
     num_comments = db.IntField(default=0)
 
 

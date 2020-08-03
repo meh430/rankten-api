@@ -3,10 +3,6 @@ from mongoengine.errors import FieldDoesNotExist, NotUniqueError, DoesNotExist, 
 sort_options = {0: '-num_likes', 1: '-date_created', 2: '+date_created'}
 
 
-class InternalServerError(Exception):
-    pass
-
-
 class SchemaValidationError(Exception):
     pass
 
@@ -82,20 +78,9 @@ def check_ps(func):
         if sort not in sort_options:
             sort = 0
 
-        if 'sort' in kwargs:
-            return func(*args, page=page, sort=sort, **kwargs)
-        else:
-            return func(*args, page=page, **kwargs)
-
-    return wrapper
-
-
-def internal_server_error(func):
-    def wrapper(*args, **kwargs):
-        try:
-            return func(*args, **kwargs)
-        except Exception:
-            raise InternalServerError
+        if 'name' in kwargs:
+            return func(*args, page=page, sort=sort, name=str(kwargs['name']))
+        return func(*args, page=page, sort=sort)
 
     return wrapper
 

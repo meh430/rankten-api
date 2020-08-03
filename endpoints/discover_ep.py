@@ -8,7 +8,6 @@ from errors import *
 class DiscoverApi(Resource):
     @check_ps
     @schema_val_error
-    @internal_server_error
     def get(self, page: int, sort: int):
         lower, upper = get_slice_bounds(page)
         all_lists = RankedList.objects().order_by(sort_options[sort])

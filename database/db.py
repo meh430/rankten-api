@@ -11,7 +11,7 @@ def init_db(app):
 # 3: 50 upto 75
 
 
-def get_slice_bounds(page):
-    upper = int(page) * 25
-    lower = upper - 25
+def get_slice_bounds(page, num_items=50):
+    upper = int(page) * num_items
+    lower = upper - num_items
     return (lower, upper)
