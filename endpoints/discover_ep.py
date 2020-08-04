@@ -4,8 +4,12 @@ from database.db import get_slice_bounds
 from database.models import RankedList
 from errors import *
 
+# /discover/<page>/<sort>
+# supports GET
+
 
 class DiscoverApi(Resource):
+    # returns all the lists
     @check_ps
     @schema_val_error
     def get(self, page: int, sort: int):

@@ -12,6 +12,7 @@ from .comment_ep import *
 def init_routes(api):
     api.add_resource(SignUpApi, '/signup')
     api.add_resource(LoginApi, '/login')
+    api.add_resource(TokenApi, '/validate_token')
 
     api.add_resource(UsersApi, '/users')
     api.add_resource(UserApi, '/users/<name>')
@@ -21,6 +22,7 @@ def init_routes(api):
     api.add_resource(UserRankedListsApi, '/rankedlists/<name>/<page>/<sort>')
 
     api.add_resource(RankItemApi, '/rankitem/<id>')
+    api.add_resource(BulkUpdateApi, '/rankitems/<id>')
 
     api.add_resource(FollowApi, '/follow/<name>')
     api.add_resource(FollowersApi, '/followers/<name>')
@@ -29,6 +31,7 @@ def init_routes(api):
     api.add_resource(DiscoverApi, '/discover/<page>/<sort>')
 
     api.add_resource(LikeApi, '/like/<id>')
+    api.add_resource(LikeCommentApi, '/like_comment/<id>')
     api.add_resource(LikedListsApi, '/likes/<page>/<sort>')
 
     api.add_resource(CommentApi, '/comment/<id>')

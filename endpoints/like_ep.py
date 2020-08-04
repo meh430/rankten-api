@@ -4,10 +4,13 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from database.db import get_slice_bounds
 from database.models import *
 from errors import *
+from endpoints.users_ep import get_compact_uinfo
+# /like/<id>
+# supports POST, GET
 
 
 class LikeApi(Resource):
-    # like/unlike a post
+    # like/unlike a list
     @jwt_required
     @list_does_not_exist_error
     @schema_val_error
@@ -39,11 +42,14 @@ class LikeApi(Resource):
     @list_does_not_exist_error
     @schema_val_error
     def get(self, id):
-        curr_list = RankedList.objects.get(id=id)
-        return jsonify([{'user_name': liker.user_name, 'prof_pic': liker.prof_pic, 'rank_points': liker.rank_points} for liker in curr_list.liked_users])
+        return jsonify(get_compact_uinfo(RankedList.objects.get(id=id).liked_users))
+
+# /like_comment/<id>
+# supports POST
 
 
 class LikeCommentApi(Resource):
+    # like/unlike a comment
     @jwt_required
     @comment_does_not_exist_error
     @schema_val_error
@@ -62,6 +68,9 @@ class LikeCommentApi(Resource):
 
         return ('liked comment' if exec_like else 'unliked comment'), 200
 
+# /likes/<page>/<sort>
+# supports GET
+
 
 class LikedListsApi(Resource):
     # return all the lists liked by a user
@@ -73,13 +82,13 @@ class LikedListsApi(Resource):
         uid = get_jwt_identity()
         user = User.objects.get(id=uid)
         liked_lists = []
-        if sort == 0:
+        if sort == LIKES_DESC:
             liked_lists = sorted(user.created_lists.liked_lists,
                                  key=lambda k: k.num_likes, reverse=True)
-        elif sort == 1:
+        elif sort == DATE_DESC:
             liked_lists = sorted(user.created_lists.liked_lists,
                                  key=lambda k: k.date_created, reverse=True)
-        elif sort == 2:
+        elif sort == DATE_ASC:
             liked_lists = sorted(user.created_lists.liked_lists,
                                  key=lambda k: k.date_created, reverse=False)
         list_len = len(liked_lists)

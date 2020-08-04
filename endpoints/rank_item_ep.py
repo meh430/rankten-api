@@ -8,16 +8,22 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from database.models import *
 from database.db import get_slice_bounds
 from errors import *
+from endpoints.ranked_list_ep import json_to_ref
+
+# /rankitem/<id>
+# supports GET(list id), POST(list id), DELETE(item id), PUT(item id)
 
 
 class RankItemApi(Resource):
+    # return all rank items in a list
     @list_does_not_exist_error
     @schema_val_error
     def get(self, id):
         # id is list id
-        return jsonify(sorted(RankedList.objects.get(
-            id=id).rank_list, key=lambda k: k.rank))
+        return jsonify(sorted(RankedList.objects.get(id=id).rank_list, key=lambda k: k.rank))
 
+    # create new rank item
+    # TODO: data validation?
     @jwt_required
     @list_does_not_exist_error
     @schema_val_error
@@ -31,8 +37,9 @@ class RankItemApi(Resource):
         rank_item.save()
         rank_list.update(push__rank_list=rank_item)
 
-        return {'_id': rank_item.id}, 200
+        return {'_id': str(rank_item.id)}, 200
 
+    # delete a rank item
     @jwt_required
     @rank_delete_error
     @schema_val_error
@@ -45,6 +52,7 @@ class RankItemApi(Resource):
 
         return 'Deleted rank item', 200
 
+    # update a rank item
     @jwt_required
     @rank_update_error
     @schema_val_error
@@ -57,3 +65,23 @@ class RankItemApi(Resource):
         rank_item.update(**body)
 
         return 'Updated rank item', 200
+
+# /rankitems/<id>
+# supports PUT(list id)
+
+
+class BulkUpdateApi(Resource):
+    # add multpile rank items to a list
+    @jwt_required
+    @rank_update_error
+    @schema_val_error
+    def put(self, id):
+        # id here is list id
+        uid = get_jwt_identity()
+        user = User.objects.get(id=uid)
+        body = request.get_json()
+        rank_list = RankedList.objects.get(id=id, created_by=user)
+        rank_list.update(push_all__rank_list=json_to_ref(
+            body['rank_list'], rank_list, user))
+
+        return 'Added rank items', 200

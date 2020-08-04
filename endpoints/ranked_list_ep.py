@@ -7,12 +7,16 @@ from errors import *
 
 
 def json_to_ref(json_list, list_ref, user):
+    # convert list of dicts to rankitem refs
     rank_list = []
     for r_item in json_list:
         rank_item = RankItem(**r_item, belongs_to=list_ref, created_by=user)
         rank_item.save()
         rank_list.append(rank_item)
     return rank_list
+
+# /rankedlist/<id>
+# supports GET, PUT, DELETE
 
 
 class RankedListApi(Resource):
@@ -46,9 +50,12 @@ class RankedListApi(Resource):
         user.update(dec__list_num=1)
         return 'Deleted ranked list', 200
 
+# /rankedlist
+# supports POST
+
 
 class RankedListsApi(Resource):
-    # create new list
+    # creates new list
     @jwt_required
     @schema_val_error
     def post(self):
@@ -75,6 +82,9 @@ class RankedListsApi(Resource):
         user.update(inc__list_num=1)
         return {'id': str(new_list.id)}, 200
 
+# /rankedlists/<name>/<page>/<sort>
+# supports GET
+
 
 class UserRankedListsApi(Resource):
     # returns lists created by a specific user
@@ -84,13 +94,13 @@ class UserRankedListsApi(Resource):
     def get(self, name: str, page: int, sort: int):
         user = User.objects.get(user_name=name)
         user_lists = []
-        if sort == 0:
+        if sort == LIKES_DESC:
             user_lists = sorted(user.created_lists.rank_lists,
                                 key=lambda k: k.num_likes, reverse=True)
-        elif sort == 1:
+        elif sort == DATE_DESC:
             user_lists = sorted(user.created_lists.rank_lists,
                                 key=lambda k: k.date_created, reverse=True)
-        elif sort == 2:
+        elif sort == DATE_ASC:
             user_lists = sorted(user.created_lists.rank_lists,
                                 key=lambda k: k.date_created, reverse=False)
         list_len = len(user_lists)

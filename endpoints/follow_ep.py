@@ -3,9 +3,14 @@ from flask_restful import Resource
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from errors import *
 from database.models import User
+from endpoints.users_ep import get_compact_uinfo
+
+# /follow/<name>
+# supports POST
 
 
 class FollowApi(Resource):
+    # follows/unfollows specified user
     @jwt_required
     @user_does_not_exist_error
     @schema_val_error
@@ -30,16 +35,23 @@ class FollowApi(Resource):
 
         return ('followed user' if exec_follow else 'unfollowed user'), 200
 
+# /following/<name>
+# supports GET
+
 
 class FollowingApi(Resource):
+    # returns a list of user's followed by the specified user
     @user_does_not_exist_error
     @schema_val_error
     def get(self, name: str):
-        return jsonify([{'user_name': f.user_name, 'prof_pic': f.prof_pic, 'rank_points': f.rank_points} for f in User.objects.get(user_name=name).following])
+        return jsonify(get_compact_uinfo(User.objects.get(user_name=name).following))
+
+# /followers/<name>
+# supports GET
 
 
 class FollowersApi(Resource):
     @user_does_not_exist_error
     @schema_val_error
     def get(self, name: str):
-        return jsonify([{'user_name': f.user_name, 'prof_pic': f.prof_pic, 'rank_points': f.rank_points} for f in User.objects.get(user_name=name).followers])
+        return jsonify(get_compact_uinfo(User.objects.get(user_name=name).followers))

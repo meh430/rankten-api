@@ -1,13 +1,16 @@
 from flask import request
 from flask_restful import Resource
-from flask_jwt_extended import create_access_token
+from flask_jwt_extended import jwt_required, get_jwt_identity, create_access_token
 from database.models import *
 from errors import *
 import datetime
 
+# /signup
+# supports POST
+
 
 class SignUpApi(Resource):
-    # create new user document and return generated jwt token
+    # creates a new user document and return generated jwt token
     @user_already_exists_error
     @schema_val_error
     def post(self):
@@ -19,8 +22,11 @@ class SignUpApi(Resource):
         user.save()
         user_lists.update(belongs_to=user)
         acc_token = create_access_token(identity=str(
-            user.id), expires_delta=datetime.timedelta(minutes=25.0))
+            user.id), expires_delta=datetime.timedelta(days=7))
         return {'jwt_token': acc_token}, 200
+
+# /login
+# supports POST
 
 
 class LoginApi(Resource):
@@ -35,5 +41,17 @@ class LoginApi(Resource):
             raise UnauthorizedError
 
         acc_token = create_access_token(identity=str(
-            user.id), expires_delta=datetime.timedelta(minutes=25.0))
+            user.id), expires_delta=datetime.timedelta(minutes=55.0))
         return {'jwt_token': acc_token}, 200
+
+# /validate_token
+# supports POST
+
+
+class TokenApi(Resource):
+    # checks token validity
+    @jwt_required
+    def post(self):
+        uid = get_jwt_identity()
+        user = User.objects.get(id=uid)
+        return {'user_name': str(user.user_name)}, 200

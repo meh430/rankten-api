@@ -1,6 +1,7 @@
 from database.db import get_slice_bounds
 from mongoengine.errors import FieldDoesNotExist, NotUniqueError, DoesNotExist, ValidationError, InvalidQueryError
 sort_options = {0: '-num_likes', 1: '-date_created', 2: '+date_created'}
+LIKES_DESC, DATE_DESC, DATE_ASC = 0, 1, 2
 
 
 class SchemaValidationError(Exception):
