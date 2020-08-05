@@ -50,6 +50,8 @@ class RankedList(db.Document):
     title = db.StringField(required=True)
     rank_list = db.ListField(db.ReferenceField(
         'RankItem', reverse_delete_rule=db.PULL), max_length=10)
+
+    num_likes = db.IntField(default="")
     liked_users = db.ListField(db.ReferenceField(
         'User', reverse_delete_rule=db.PULL), default=[])
 
@@ -70,6 +72,8 @@ class Comment(db.Document):
     prof_pic = db.StringField(default="")
     comment = db.StringField(required=True)
     edited = db.BooleanField(default=False)
+
+    num_likes = db.IntField(default="")
     liked_users = db.ListField(db.ReferenceField(
         'User', reverse_delete_rule=db.PULL), default=[])
 
