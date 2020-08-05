@@ -6,17 +6,19 @@ from errors import *
 from database.db import get_slice_bounds
 
 # /comment/<id>
-# supports GET(list id), POST(list id), PUT(comment id), DELETE(comment id)
+# supports GET(comment id), POST(list id), PUT(comment id), DELETE(comment id)
 
 
 class CommentApi(Resource):
-    # get the number of comments on a specified list
-    @list_does_not_exist_error
+
+    # get the list that the comment is on
+    @comment_does_not_exist_error
     @schema_val_error
     def get(self, id):
-        # id here is list id
-        rank_list_comments = RankedList.objects.get(id=id).comment_section
-        return {'num_comments': rank_list_comments.num_comments}, 200
+        # id here is comment id
+        # get the comment section it belongs to and then get the list the comment section belongs to
+        rank_list = Comment.objects.get(id=id).belongs_to.belongs_to
+        return rank_list.to_json(), 200
 
     # create a new comment on a specifed list
     @jwt_required
@@ -36,11 +38,13 @@ class CommentApi(Resource):
         if 'edited' in body:
             body['edited'] = False
 
-        rank_list_comments = RankedList.objects.get(id=id).comment_section
+        rank_list = RankedList.objects.get(id=id)
         comment = Comment(**body, made_by=user, belongs_to=rank_list_comments)
         comment.save()
-        rank_list_comments.update(push__comments=comment, inc__num_comments=1)
-        user.update(inc__comment_num=1)
+        rank_list.update(num_comments=(
+            len(rank_list.comment_section.comments)+1))
+        rank_list.comment_section.update(push__comments=comment)
+        user.update(inc__num_comments=1)
         return {'_id': str(comment.id)}, 200
 
     # update a specified comment
@@ -68,10 +72,11 @@ class CommentApi(Resource):
         uid = get_jwt_identity()
         user = User.objects.get(id=uid)
         comment = Comment.objects.get(id=id, made_by=uid)
-        comment_section = comment.belongs_to
+        rank_list = comment.belongs_to.belongs_to
+        rank_list.update(num_comments=(
+            len(rank_list.comment_section.comments)-1))
         comment.delete()
-        comment_section.update(dec__num_comments=1)
-        user.update(dec__comment_num=1)
+        user.update(dec__num_comments=1)
         return 'Deleted comment', 200
 
 # /comments/<id>/<page>/<sort>
@@ -84,6 +89,8 @@ class CommentsApi(Resource):
     @list_does_not_exist_error
     @schema_val_error
     def get(self, id, page: int, sort: int):
+        limit = int(request.args.get('limit'))
+
         rank_list_comments = []
         if sort == LIKES_DESC:
             rank_list_comments = sorted(RankedList.objects.get(
@@ -100,6 +107,7 @@ class CommentsApi(Resource):
         if lower >= list_len:
             raise InvalidPageError
         upper = list_len if upper >= list_len else upper
+        upper = (lower+limit) if (lower+limit) <= upper else upper
         return jsonify(rank_list_comments[lower:upper])
 
 # /user_comments/<name>/<page>/<sort>

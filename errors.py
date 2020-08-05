@@ -81,6 +81,10 @@ def check_ps(func):
 
         if 'name' in kwargs:
             return func(*args, page=page, sort=sort, name=str(kwargs['name']))
+
+        if 'id' in kwargs:
+            return func(*args, page=page, sort=sort, id=str(kwargs['id']))
+
         return func(*args, page=page, sort=sort)
 
     return wrapper
@@ -232,7 +236,7 @@ error_dict = {
         "status": 403
     },
     "RankedListDoesNotExistError": {
-        "message": "List with given id already exists",
+        "message": "List with given id does not exists",
         "status": 400
     },
     "RankItemDoesNotExistError": {

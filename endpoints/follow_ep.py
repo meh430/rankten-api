@@ -25,15 +25,11 @@ class FollowApi(Resource):
         exec_follow = target not in user.following
 
         if exec_follow:
-            user.update(push__following=target,
-                        inc__following_num=1)
-            target.update(push__followers=user,
-                          inc__followers_num=1)
+            user.update(push__following=target)
+            target.update(push__followers=user)
         else:
-            user.update(pull__following=target,
-                        dec__following_num=1)
-            target.update(pull__followers=user,
-                          dec__followers_num=1)
+            user.update(pull__following=target)
+            target.update(pull__followers=user)
 
         cache.delete(user.user_name + 'following')
         cache.delete(target.user_name + 'followers')

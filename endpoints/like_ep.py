@@ -28,11 +28,11 @@ class LikeApi(Resource):
         exec_like = curr_list not in user_list_coll.liked_lists
 
         if exec_like:
-            curr_list.update(inc__num_likes=1, push__liked_users=user)
+            curr_list.update(push__liked_users=user)
             list_owner.update(inc__rank_points=1)
             user_list_coll.update(push__liked_lists=curr_list)
         else:
-            curr_list.update(dec__num_likes=1, pull__liked_users=user)
+            curr_list.update(pull__liked_users=user)
             list_owner.update(dec__rank_points=1)
             user_list_coll.update(pull__liked_lists=curr_list)
 
@@ -60,10 +60,10 @@ class LikeCommentApi(Resource):
 
         exec_like = user not in comment.liked_users
         if exec_like:
-            comment.update(inc__num_likes=1, push__liked_users=user)
+            comment.update(push__liked_users=user)
             comment.made_by.update(inc__rank_points=1)
         else:
-            comment.update(dec__num_likes=1, pull__liked_users=user)
+            comment.update(pull__liked_users=user)
             comment.made_by.update(dec__rank_points=1)
 
         return ('liked comment' if exec_like else 'unliked comment'), 200

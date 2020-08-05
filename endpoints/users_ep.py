@@ -37,6 +37,14 @@ class UsersApi(Resource):
         user.update(**body)
         return 'Updated user', 200
 
+    # deletes user
+
+    @jwt_required
+    @schema_val_error
+    def delete(self):
+        uid = get_jwt_identity()
+        User.objects.get(id=uid).delete()
+        return 'Deleted user', 200
 # /users/<name>
 # supports GET
 

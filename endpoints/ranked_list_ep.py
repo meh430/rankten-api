@@ -66,6 +66,7 @@ class RankedListsApi(Resource):
         new_list = None
         commentSection = CommentSection()
         commentSection.save()
+        rank_list = body.pop('rank_list')
         if 'user_name' in body:
             new_list = RankedList(**body, created_by=user,
                                   comment_section=commentSection)
@@ -74,9 +75,8 @@ class RankedListsApi(Resource):
                                   user_name=user.user_name, comment_section=commentSection)
         new_list.save()
         commentSection.update(belongs_to=new_list)
-        if 'rank_list' in body:
-            new_list.update(rank_list=json_to_ref(
-                body.pop('rank_list'), new_list, user))
+        if rank_list:
+            new_list.update(rank_list=json_to_ref(rank_list, new_list, user))
 
         user.created_lists.update(push__rank_lists=new_list)
         user.update(inc__list_num=1)
