@@ -39,7 +39,8 @@ class CommentApi(Resource):
             body['edited'] = False
 
         rank_list = RankedList.objects.get(id=id)
-        comment = Comment(**body, made_by=user, belongs_to=rank_list_comments)
+        comment = Comment(**body, made_by=user,
+                          belongs_to=rank_list.comment_section)
         comment.save()
         rank_list.update(num_comments=(
             len(rank_list.comment_section.comments)+1))
