@@ -3,6 +3,7 @@ from flask_restful import Resource
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from database.models import User
 from errors import *
+from database.json_cacher import *
 
 
 def get_compact_uinfo(user_list):
@@ -43,7 +44,8 @@ class UsersApi(Resource):
     @schema_val_error
     def delete(self):
         uid = get_jwt_identity()
-        User.objects.get(id=uid).delete()
+        user = User.objects.get(id=uid)
+        user.delete()
         return 'Deleted user', 200
 # /users/<name>
 # supports GET

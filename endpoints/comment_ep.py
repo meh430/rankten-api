@@ -2,11 +2,19 @@ from flask import request, jsonify
 from flask_restful import Resource
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from database.models import *
+from database.db import cache, get_slice_bounds
+from database.json_cacher import *
 from errors import *
-from database.db import get_slice_bounds
+import simdjson as json
 
 # /comment/<id>
 # supports GET(comment id), POST(list id), PUT(comment id), DELETE(comment id)
+
+
+@list_does_not_exist_error
+@schema_val_error
+def comment_parent_id(id):
+    return str(Comment.objects.get(id=id).belongs_to.belongs_to.id)
 
 
 class CommentApi(Resource):
@@ -46,6 +54,9 @@ class CommentApi(Resource):
             len(rank_list.comment_section.comments)+1))
         rank_list.comment_section.update(push__comments=comment)
         user.update(inc__num_comments=1)
+
+        JsonCache.delete(user.user_name + USER_COMMENTS)
+        JsonCache.delete(id + LIST_COMMENTS)
         return {'_id': str(comment.id)}, 200
 
     # update a specified comment
@@ -62,6 +73,8 @@ class CommentApi(Resource):
             body['edited'] = True
 
         comment.update(**body)
+        JsonCache.delete(user.user_name + USER_COMMENTS)
+        JsonCache.delete(comment_parent_id(id) + LIST_COMMENTS)
         return 'Updated comment', 200
 
     # delete a specified comment
@@ -78,6 +91,8 @@ class CommentApi(Resource):
             len(rank_list.comment_section.comments)-1))
         comment.delete()
         user.update(dec__num_comments=1)
+        JsonCache.delete(user.user_name + USER_COMMENTS)
+        JsonCache.delete(comment_parent_id(id) + LIST_COMMENTS)
         return 'Deleted comment', 200
 
 # /comments/<id>/<page>/<sort>
@@ -91,17 +106,23 @@ class CommentsApi(Resource):
     @schema_val_error
     def get(self, id, page: int, sort: int):
         limit = int(request.args.get('limit'))
-
         rank_list_comments = []
+        if JsonCache.exists(id + LIST_COMMENTS):
+            rank_list_comments = JsonCache.get_item(id + LIST_COMMENTS)
+        else:
+            rank_list_comments = RankedList.objects.get(
+                id=id).comment_section.comments
+            JsonCache.cache_item(id + LIST_COMMENTS, rank_list_comments)
+
         if sort == LIKES_DESC:
-            rank_list_comments = sorted(RankedList.objects.get(
-                id=id).comment_section.comments, key=lambda k: k.num_likes, reverse=True)
+            rank_list_comments = sorted(
+                rank_list_comments, key=lambda k: k.num_likes, reverse=True)
         elif sort == DATE_DESC:
-            rank_list_comments = sorted(RankedList.objects.get(
-                id=id).comment_section.comments, key=lambda k: k.date_created, reverse=True)
+            rank_list_comments = sorted(
+                rank_list_comments, key=lambda k: k.date_created, reverse=True)
         elif sort == DATE_ASC:
-            rank_list_comments = sorted(RankedList.objects.get(
-                id=id).comment_section.comments, key=lambda k: k.date_created, reverse=False)
+            rank_list_comments = sorted(
+                rank_list_comments, key=lambda k: k.date_created, reverse=False)
 
         list_len = len(rank_list_comments)
         lower, upper = get_slice_bounds(page)
@@ -121,8 +142,13 @@ class UserCommentsApi(Resource):
     @user_does_not_exist_error
     @schema_val_error
     def get(self, name: str, page: int, sort: int):
-        user_comments = Comment.objects(
-            user_name=name).order_by(sort_options[sort])
+        user_comments = []
+        if JsonCache.exists(name + USER_COMMENTS):
+            user_comments = JsonCache.get_item(name + USER_COMMENTS)
+        else:
+            user_comments = Comment.objects(
+                user_name=name).order_by(sort_options[sort])
+            JsonCache.cache_item(name + USER_COMMENTS, user_comments)
         list_len = len(user_comments)
         lower, upper = get_slice_bounds(page)
         if lower >= list_len:

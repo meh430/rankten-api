@@ -3,9 +3,8 @@ from flask_restful import Resource
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from errors import *
 from database.models import User
-from database.db import cache
+from database.json_cacher import *
 from endpoints.users_ep import get_compact_uinfo
-import json
 
 # /follow/<name>
 # supports POST
@@ -31,8 +30,9 @@ class FollowApi(Resource):
             user.update(pull__following=target)
             target.update(pull__followers=user)
 
-        cache.delete(user.user_name + 'following')
-        cache.delete(target.user_name + 'followers')
+        # clear existing redis keys bc they have been updated
+        JsonCache.delete(user.user_name + FOLLOWING)
+        JsonCache.delete(target.user_name + FOLLOWERS)
 
         return ('followed user' if exec_follow else 'unfollowed user'), 200
 
@@ -45,14 +45,15 @@ class FollowingApi(Resource):
     @user_does_not_exist_error
     @schema_val_error
     def get(self, name: str):
-        if cache.exists(name + 'following'):
-            return cache.get(name + 'following'), 200
+        # check if info exists in redis cache
+        if JsonCache.exists(name + FOLLOWING):
+            return jsonify(JsonCache.get_item(name + FOLLOWING))
         else:
-            following_json = json.dumps(get_compact_uinfo(
-                User.objects.get(user_name=name).following))
-            cache.set(name + 'following', following_json)
+            following_json = get_compact_uinfo(
+                User.objects.get(user_name=name).following)
+            JsonCache.cache_item(name + FOLLOWING, following_json)
 
-            return following_json, 200
+            return jsonify(following_json)
 
 # /followers/<name>
 # supports GET
@@ -62,11 +63,11 @@ class FollowersApi(Resource):
     @user_does_not_exist_error
     @schema_val_error
     def get(self, name: str):
-        if cache.exists(name + 'followers'):
-            return cache.get(name + 'followers'), 200
+        if JsonCache.exists(name + FOLLOWERS):
+            return jsonify(JsonCache.get_item(name + FOLLOWERS))
         else:
-            followers_json = json.dumps(get_compact_uinfo(
-                User.objects.get(user_name=name).followers))
-            cache.set(name + 'followers', followers_json)
+            followers_json = get_compact_uinfo(
+                User.objects.get(user_name=name).followers)
+            JsonCache.cache_item(name + FOLLOWERS, followers_json)
 
-            return followers_json, 200
+            return jsonify(followers_json)

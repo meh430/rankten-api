@@ -3,6 +3,7 @@ from flask_restful import Resource
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from database.db import get_slice_bounds
 from database.models import *
+from database.json_cacher import *
 from errors import *
 from endpoints.users_ep import get_compact_uinfo
 # /like/<id>
@@ -38,13 +39,23 @@ class LikeApi(Resource):
             list_owner.update(dec__rank_points=1)
             user_list_coll.update(pull__liked_lists=curr_list)
 
+        JsonCache.delete(id + LIKED_USERS)
+
         return ('liked list' if exec_like else 'unliked list'), 200
 
     # returns list of users that liked a list
     @list_does_not_exist_error
     @schema_val_error
     def get(self, id):
-        return jsonify(get_compact_uinfo(RankedList.objects.get(id=id).liked_users))
+        liked_users = []
+        if JsonCache.exists(id + LIKED_USERS):
+            liked_users = JsonCache.get_item(id + LIKED_USERS)
+        else:
+            liked_users = get_compact_uinfo(
+                RankedList.objects.get(id=id).liked_users)
+            JsonCache.cache_item(id + LIKED_USERS, liked_users)
+
+        return jsonify(liked_users)
 
 # /like_comment/<id>
 # supports POST
