@@ -3,6 +3,7 @@ from flask_restful import Resource
 from database.db import get_slice_bounds
 from database.models import RankedList
 from errors import *
+from ranked_list_ep import endpoints.ranked_list_card
 
 # /discover/<page>/<sort>
 # supports GET
@@ -19,4 +20,4 @@ class DiscoverApi(Resource):
         if lower >= list_len:
             raise InvalidPageError
         upper = list_len if upper >= list_len else upper
-        return jsonify(all_lists[lower:upper])
+        return jsonify(ranked_list_card(all_lists[lower:upper]))

@@ -3,7 +3,7 @@ from flask_restful import Resource
 from database.models import User, RankedList
 from errors import *
 from database.db import get_slice_bounds
-
+from endpoints.ranked_list_ep import ranked_list_card
 # /search_users/<page>/<sort>
 # supports GET
 
@@ -23,7 +23,7 @@ class SearchUsersApi(Resource):
             raise InvalidPageError
         upper = list_len if upper >= list_len else upper
 
-        return jsonify(result[lower:upper])
+        return jsonify(ranked_list_card(result[lower:upper]))
 
 # /search_lists/<page>/<sort>
 # supports GET
@@ -46,4 +46,4 @@ class SearchListsApi(Resource):
             raise InvalidPageError
         upper = list_len if upper >= list_len else upper
 
-        return jsonify(result[lower:upper])
+        return jsonify(ranked_list_card(result[lower:upper]))

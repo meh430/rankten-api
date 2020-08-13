@@ -5,9 +5,36 @@ from database.models import *
 from database.db import get_slice_bounds
 from errors import *
 
+#custom schema for list card elements
+def ranked_list_card(lists):
+    ranked_list_cards = []
+    for ranked_list in lists:
+        r_card = {
+            '_id': ranked_list.id,
+            'user_name': ranked_list.user_name, 
+            'prof_pic': ranked_list.created_by.prof_pic, 
+            'title': ranked_list.title, 
+            'date_created': ranked_list.date_created, 
+            'num_likes': ranked_list.num_likes, 
+            'num_comments': ranked_list.num_comments}
+        r_items_preview = []
+        pic = ""
+        for r_item in ranked_list.rank_list:
+            if pic == "" and r_item.picture != "":
+                pic = r_item.picture
+            if len(r_items_preview) <= 3:
+                r_items_preview.append({
+                    'item_name': r_item.item_name,
+                    'rank': r_item.rank
+                })
+        r_card['rank_list'] = r_items_preview
+        r_card['picture'] = pic
+        ranked_list_cards.apppend(r_card)
+    
+    return ranked_list_cards
 
 def json_to_ref(json_list, list_ref, user):
-    # convert list of dicts to rankitem refs
+    # convert list of dicts to rankitem refs for bulk updates
     rank_list = []
     for r_item in json_list:
         rank_item = RankItem(**r_item, belongs_to=list_ref, created_by=user)
@@ -93,19 +120,7 @@ class UserRankedListsApi(Resource):
     @schema_val_error
     def get(self, name: str, page: int, sort: int):
         user = User.objects.get(user_name=name)
-        user_lists = []
-        if sort == LIKES_DESC:
-            user_lists = sorted(user.created_lists.rank_lists,
-                                key=lambda k: k.num_likes, reverse=True)
-        elif sort == DATE_DESC:
-            user_lists = sorted(user.created_lists.rank_lists,
-                                key=lambda k: k.date_created, reverse=True)
-        elif sort == DATE_ASC:
-            user_lists = sorted(user.created_lists.rank_lists,
-                                key=lambda k: k.date_created, reverse=False)
-        list_len = len(user_lists)
-        lower, upper = get_slice_bounds(page)
-        if lower >= list_len:
-            raise InvalidPageError
-        upper = list_len if upper >= list_len else upper
-        return jsonify(user_lists[lower:upper])
+        user_lists = user.created_lists.rank_lists
+        sort_lists(user_lists, sort)
+        
+        return jsonify(ranked_list_card(slice_list(user_lists, page)))

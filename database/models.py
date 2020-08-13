@@ -79,15 +79,6 @@ class Comment(db.Document):
     liked_users = db.ListField(db.ReferenceField(
         'User', reverse_delete_rule=db.PULL), default=[])
 
-    @staticmethod
-    def from_json(comment_json):
-        comment = Comment(**comment_json)
-        return comment
-
-    @staticmethod
-    def as_json(comment):
-        pass
-
 
 class CommentSection(db.Document):
     belongs_to = db.ReferenceField(

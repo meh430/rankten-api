@@ -6,6 +6,8 @@ from database.models import *
 from database.json_cacher import *
 from errors import *
 from endpoints.users_ep import get_compact_uinfo
+from endpoints.comment_ep import comment_parent_id
+from endpoints.ranked_list_ep import ranked_list_card
 # /like/<id>
 # supports POST, GET
 
@@ -81,6 +83,9 @@ class LikeCommentApi(Resource):
                            num_likes=len(comment.liked_users)-1)
             comment.made_by.update(dec__rank_points=1)
 
+
+        JsonCache.delete(comment_parent_id(id), LIST_COMMENTS)
+        JsonCache.delete(comment.made_by.user_name, USER_COMMENTS)
         return ('liked comment' if exec_like else 'unliked comment'), 200
 
 # /likes/<page>/<sort>
@@ -98,4 +103,4 @@ class LikedListsApi(Resource):
         user = User.objects.get(id=uid)
         liked_lists = user.created_lists.liked_lists
         sort_list(liked_lists, sort)
-        return jsonify(slice_list(liked_list, page))
+        return jsonify(ranked_list_card(slice_list(liked_list, page)))
