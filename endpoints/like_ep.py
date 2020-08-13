@@ -42,6 +42,7 @@ class LikeApi(Resource):
             user_list_coll.update(pull__liked_lists=curr_list)
 
         JsonCache.delete(id, LIKED_USERS)
+        JsonCache.delete(list_owner.user_name, USER_LISTS)
 
         return ('liked list' if exec_like else 'unliked list'), 200
 

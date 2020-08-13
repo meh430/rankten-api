@@ -4,13 +4,14 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from database.models import *
 from database.db import get_slice_bounds
 from errors import *
+from database.json_cacher import *
 
 #custom schema for list card elements
 def ranked_list_card(lists):
     ranked_list_cards = []
     for ranked_list in lists:
         r_card = {
-            '_id': ranked_list.id,
+            '_id': str(ranked_list.id),
             'user_name': ranked_list.user_name, 
             'prof_pic': ranked_list.created_by.prof_pic, 
             'title': ranked_list.title, 
@@ -27,6 +28,12 @@ def ranked_list_card(lists):
                     'item_name': r_item.item_name,
                     'rank': r_item.rank
                 })
+        list_comments = ranked_list.comment_section.comments
+        has_comments = len(list_comments) > 0
+        r_card['comment_preview'] = {
+            'comment': list_comments[0].comment,
+            'user_name': list_comments[0].user_name
+        }
         r_card['rank_list'] = r_items_preview
         r_card['picture'] = pic
         ranked_list_cards.apppend(r_card)
@@ -63,6 +70,7 @@ class RankedListApi(Resource):
         user = User.objects.get(id=uid)
         curr_list = RankedList.objects.get(id=id, created_by=user)
         curr_list.update(**body)
+        JsonCache.delete(user.user_name, USER_LISTS)
         return 'Updated ranked list', 200
 
     # delete specified list
@@ -75,6 +83,7 @@ class RankedListApi(Resource):
         ranked_list = RankedList.objects.get(id=id, created_by=user)
         ranked_list.delete()
         user.update(dec__list_num=1)
+        JsonCache.delete(user.user_name, USER_LISTS)
         return 'Deleted ranked list', 200
 
 # /rankedlist
@@ -107,6 +116,10 @@ class RankedListsApi(Resource):
 
         user.created_lists.update(push__rank_lists=new_list)
         user.update(inc__list_num=1)
+        JsonCache.delete(user.user_name, USER_LISTS)
+        following = user.following
+        for f in followers:
+            JsonCache.delete(f.user_name, FEED)
         return {'_id': str(new_list.id)}, 200
 
 # /rankedlists/<name>/<page>/<sort>
@@ -119,8 +132,41 @@ class UserRankedListsApi(Resource):
     @user_does_not_exist_error
     @schema_val_error
     def get(self, name: str, page: int, sort: int):
-        user = User.objects.get(user_name=name)
-        user_lists = user.created_lists.rank_lists
+        user_lists = []
+        if JsonCache.exists(name, USER_LISTS):
+            user_lists = JsonCache.get_item(name, USER_LISTS)
+        else:
+            user = User.objects.get(user_name=name)
+            user_lists = ranked_list_card(user.created_lists.rank_lists)
+            JsonCache.cache_item(name, user_lists, USER_LISTS)
+            
         sort_lists(user_lists, sort)
+        return jsonify(slice_list(user_lists, page))
+#/feed
+#supports GET
+
+class FeedApi(Resource):
+    #return user feed
+    @jwt_required
+    @schema_val_error
+    def get(self, page: int):
+        if page <= 0:
+            return InvalidPageError
+        refresh = False
+        if 're' in request.args:
+            refresh = bool(request.args['re'])
+
+        uid = get_jwt_identity()
+        user = User.objects.get(id=uid)
+        feed_list = []
         
-        return jsonify(ranked_list_card(slice_list(user_lists, page)))
+        if JsonCache.exists(user.user_name, FEED) and not refresh:
+            feed_list = JsonCache.get_item(user.user_name, FEED)
+        else:
+            for f in user.following:
+                feed_list.extend(f.created_lists.rank_lists)
+            sort_list(feed_list, DATE_DESC)
+            feed_list = ranked_list_card(feed_list)
+            JsonCache.cache_item(user.user_name, feed_list, FEED)
+        
+        return jsonify(slice_list(feed_list, page))

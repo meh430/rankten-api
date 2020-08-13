@@ -6,9 +6,10 @@ FOLLOWERS = 'follwers'
 LIST_COMMENTS = 'list_comments'
 USER_COMMENTS = 'user_comments'
 LIKED_USERS = 'liked_users'
-COMMENT = 'comment'
+FEED = 'feed'
+USER_LISTS = 'user_lists'
 
-EXPIRE = 12*60*60
+EXPIRE = 6*60*60
 
 
 class JsonCache:

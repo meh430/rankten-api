@@ -9,6 +9,7 @@ from database.models import *
 from database.db import get_slice_bounds
 from errors import *
 from endpoints.ranked_list_ep import json_to_ref
+from database.json_cacher import *
 
 # /rankitem/<id>
 # supports GET(list id), POST(list id), DELETE(item id), PUT(item id)
@@ -36,7 +37,7 @@ class RankItemApi(Resource):
         rank_item = RankItem(**body, belongs_to=rank_list, created_by=user)
         rank_item.save()
         rank_list.update(push__rank_list=rank_item)
-
+        JsonCache.delete(user.user_name, USER_LISTS)
         return {'_id': str(rank_item.id)}, 200
 
     # delete a rank item
@@ -49,7 +50,7 @@ class RankItemApi(Resource):
         user = User.objects.get(id=uid)
         rank_item = RankItem.objects.get(id=id, created_by=user)
         rank_item.delete()
-
+        JsonCache.delete(user.user_name, USER_LISTS)
         return 'Deleted rank item', 200
 
     # update a rank item
@@ -63,7 +64,7 @@ class RankItemApi(Resource):
         rank_item = RankItem.objects.get(id=id, created_by=user)
         body = request.get_json()
         rank_item.update(**body)
-
+        JsonCache.delete(user.user_name, USER_LISTS)
         return 'Updated rank item', 200
 
 # /rankitems/<id>
@@ -83,5 +84,5 @@ class BulkUpdateApi(Resource):
         rank_list = RankedList.objects.get(id=id, created_by=user)
         rank_list.update(push_all__rank_list=json_to_ref(
             body['rank_list'], rank_list, user))
-
+        JsonCache.delete(user.user_name, USER_LISTS)
         return 'Added rank items', 200

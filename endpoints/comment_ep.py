@@ -57,6 +57,7 @@ class CommentApi(Resource):
 
         JsonCache.delete(user.user_name, USER_COMMENTS)
         JsonCache.delete(id, LIST_COMMENTS)
+        JsonCache.delete(rank_list.user_name, USER_LISTS)
         return {'_id': str(comment.id)}, 200
 
     # update a specified comment
@@ -74,7 +75,9 @@ class CommentApi(Resource):
 
         comment.update(**body)
         JsonCache.delete(user.user_name, USER_COMMENTS)
-        JsonCache.delete(comment_parent_id(id), LIST_COMMENTS)
+        parent_id = comment_parent_id(id)
+        JsonCache.delete(parent_id, LIST_COMMENTS)
+        JsonCache.delete(RankedList.objects.get(id=parent_id).user_name, USER_LISTS)
         return 'Updated comment', 200
 
     # delete a specified comment
@@ -91,8 +94,10 @@ class CommentApi(Resource):
             len(rank_list.comment_section.comments)-1))
         comment.delete()
         user.update(dec__num_comments=1)
+        parent_id = comment_parent_id(id)
         JsonCache.delete(user.user_name, USER_COMMENTS)
-        JsonCache.delete(comment_parent_id(id), LIST_COMMENTS)
+        JsonCache.delete(parent_id, LIST_COMMENTS)
+        JsonCache.delete(RankedList.objects.get(id=parent_id).user_name, USER_LISTS)
         return 'Deleted comment', 200
 
 # /comments/<id>/<page>/<sort>
