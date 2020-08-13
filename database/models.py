@@ -1,6 +1,8 @@
 from .db import db
 from flask_bcrypt import generate_password_hash, check_password_hash
 import datetime
+from errors import InvalidPageError
+from endpoints.routes import get_slice_bounds
 
 
 class User(db.Document):
@@ -77,6 +79,15 @@ class Comment(db.Document):
     liked_users = db.ListField(db.ReferenceField(
         'User', reverse_delete_rule=db.PULL), default=[])
 
+    @staticmethod
+    def from_json(comment_json):
+        comment = Comment(**comment_json)
+        return comment
+
+    @staticmethod
+    def as_json(comment):
+        pass
+
 
 class CommentSection(db.Document):
     belongs_to = db.ReferenceField(
@@ -95,3 +106,25 @@ class ListCollection(db.Document):
         'RankedList', reverse_delete_rule=db.PULL))
     liked_lists = db.ListField(db.ReferenceField(
         'RankedList', reverse_delete_rule=db.PULL))
+
+
+def sort_list(documents, sort):
+    if sort == LIKES_DESC:
+        documents = sorted(documents, key=lambda k: k['num_likes'] if isinstance(
+            k, dict) else k.num_likes, reverse=True)
+    elif sort == DATE_DESC:
+        documents = sorted(
+            documents, key=lambda k: k['date_created']['$date'] if isinstance(k, dict) else k.date_created, reverse=True)
+    elif sort == DATE_ASC:
+        documents = sorted(
+            documents, key=lambda k: k['date_created']['$date'] if isinstance(k, dict) else k.date_created, reverse=False)
+
+
+def slice_list(documents, page):
+    list_len = len(documents)
+    lower, upper = get_slice_bounds(page)
+    if lower >= list_len:
+        raise InvalidPageError
+    upper = list_len if upper >= list_len else upper
+
+    return documents[lower:upper]

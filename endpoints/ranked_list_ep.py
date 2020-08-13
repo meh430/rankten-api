@@ -80,7 +80,7 @@ class RankedListsApi(Resource):
 
         user.created_lists.update(push__rank_lists=new_list)
         user.update(inc__list_num=1)
-        return {'id': str(new_list.id)}, 200
+        return {'_id': str(new_list.id)}, 200
 
 # /rankedlists/<name>/<page>/<sort>
 # supports GET

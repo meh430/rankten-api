@@ -1,7 +1,7 @@
 import requests
 import random
 user_data = [dict({'user_name': f'user_{i}', 'password': f'password_{i}'})
-             for i in range(30)]
+             for i in range(69)]
 tokens = dict({})
 # create users
 for user in user_data:
@@ -27,7 +27,7 @@ for i in range(10, 16):
 
 # make 10-30 posts per user
 for user in user_data:
-    num_posts = random.randint(10, 30)
+    num_posts = random.randint(10, 50)
     for i in range(num_posts):
         ranked_list = {'title': f'topic title {i}',
                        'user_name': user['user_name']}

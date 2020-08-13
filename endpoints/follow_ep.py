@@ -31,8 +31,8 @@ class FollowApi(Resource):
             target.update(pull__followers=user)
 
         # clear existing redis keys bc they have been updated
-        JsonCache.delete(user.user_name + FOLLOWING)
-        JsonCache.delete(target.user_name + FOLLOWERS)
+        JsonCache.delete(user.user_name, FOLLOWING)
+        JsonCache.delete(target.user_name, FOLLOWERS)
 
         return ('followed user' if exec_follow else 'unfollowed user'), 200
 
@@ -46,12 +46,12 @@ class FollowingApi(Resource):
     @schema_val_error
     def get(self, name: str):
         # check if info exists in redis cache
-        if JsonCache.exists(name + FOLLOWING):
-            return jsonify(JsonCache.get_item(name + FOLLOWING))
+        if JsonCache.exists(name, FOLLOWING):
+            return jsonify(JsonCache.get_item(name, FOLLOWING))
         else:
             following_json = get_compact_uinfo(
                 User.objects.get(user_name=name).following)
-            JsonCache.cache_item(name + FOLLOWING, following_json)
+            JsonCache.cache_item(name, following_json, FOLLOWING)
 
             return jsonify(following_json)
 
@@ -63,11 +63,11 @@ class FollowersApi(Resource):
     @user_does_not_exist_error
     @schema_val_error
     def get(self, name: str):
-        if JsonCache.exists(name + FOLLOWERS):
-            return jsonify(JsonCache.get_item(name + FOLLOWERS))
+        if JsonCache.exists(name, FOLLOWERS):
+            return jsonify(JsonCache.get_item(name, FOLLOWERS))
         else:
             followers_json = get_compact_uinfo(
                 User.objects.get(user_name=name).followers)
-            JsonCache.cache_item(name + FOLLOWERS, followers_json)
+            JsonCache.cache_item(name, followers_json, FOLLOWERS)
 
             return jsonify(followers_json)

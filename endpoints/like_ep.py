@@ -39,7 +39,7 @@ class LikeApi(Resource):
             list_owner.update(dec__rank_points=1)
             user_list_coll.update(pull__liked_lists=curr_list)
 
-        JsonCache.delete(id + LIKED_USERS)
+        JsonCache.delete(id, LIKED_USERS)
 
         return ('liked list' if exec_like else 'unliked list'), 200
 
@@ -48,12 +48,12 @@ class LikeApi(Resource):
     @schema_val_error
     def get(self, id):
         liked_users = []
-        if JsonCache.exists(id + LIKED_USERS):
-            liked_users = JsonCache.get_item(id + LIKED_USERS)
+        if JsonCache.exists(id, LIKED_USERS):
+            liked_users = JsonCache.get_item(id, LIKED_USERS)
         else:
             liked_users = get_compact_uinfo(
                 RankedList.objects.get(id=id).liked_users)
-            JsonCache.cache_item(id + LIKED_USERS, liked_users)
+            JsonCache.cache_item(id, liked_users, LIKED_USERS)
 
         return jsonify(liked_users)
 
@@ -96,19 +96,6 @@ class LikedListsApi(Resource):
     def get(self, page: int, sort: int):
         uid = get_jwt_identity()
         user = User.objects.get(id=uid)
-        liked_lists = []
-        if sort == LIKES_DESC:
-            liked_lists = sorted(user.created_lists.liked_lists,
-                                 key=lambda k: k.num_likes, reverse=True)
-        elif sort == DATE_DESC:
-            liked_lists = sorted(user.created_lists.liked_lists,
-                                 key=lambda k: k.date_created, reverse=True)
-        elif sort == DATE_ASC:
-            liked_lists = sorted(user.created_lists.liked_lists,
-                                 key=lambda k: k.date_created, reverse=False)
-        list_len = len(liked_lists)
-        lower, upper = get_slice_bounds(page)
-        if lower >= list_len:
-            raise InvalidPageError
-        upper = list_len if upper >= list_len else upper
-        return jsonify(liked_lists[lower:upper])
+        liked_lists = user.created_lists.liked_lists
+        sort_list(liked_lists, sort)
+        return jsonify(slice_list(liked_list, page))

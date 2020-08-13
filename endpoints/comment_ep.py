@@ -55,8 +55,8 @@ class CommentApi(Resource):
         rank_list.comment_section.update(push__comments=comment)
         user.update(inc__num_comments=1)
 
-        JsonCache.delete(user.user_name + USER_COMMENTS)
-        JsonCache.delete(id + LIST_COMMENTS)
+        JsonCache.delete(user.user_name, USER_COMMENTS)
+        JsonCache.delete(id, LIST_COMMENTS)
         return {'_id': str(comment.id)}, 200
 
     # update a specified comment
@@ -73,8 +73,8 @@ class CommentApi(Resource):
             body['edited'] = True
 
         comment.update(**body)
-        JsonCache.delete(user.user_name + USER_COMMENTS)
-        JsonCache.delete(comment_parent_id(id) + LIST_COMMENTS)
+        JsonCache.delete(user.user_name, USER_COMMENTS)
+        JsonCache.delete(comment_parent_id(id), LIST_COMMENTS)
         return 'Updated comment', 200
 
     # delete a specified comment
@@ -91,8 +91,8 @@ class CommentApi(Resource):
             len(rank_list.comment_section.comments)-1))
         comment.delete()
         user.update(dec__num_comments=1)
-        JsonCache.delete(user.user_name + USER_COMMENTS)
-        JsonCache.delete(comment_parent_id(id) + LIST_COMMENTS)
+        JsonCache.delete(user.user_name, USER_COMMENTS)
+        JsonCache.delete(comment_parent_id(id), LIST_COMMENTS)
         return 'Deleted comment', 200
 
 # /comments/<id>/<page>/<sort>
@@ -105,32 +105,16 @@ class CommentsApi(Resource):
     @list_does_not_exist_error
     @schema_val_error
     def get(self, id, page: int, sort: int):
-        limit = int(request.args.get('limit'))
         rank_list_comments = []
-        if JsonCache.exists(id + LIST_COMMENTS):
-            rank_list_comments = JsonCache.get_item(id + LIST_COMMENTS)
+        if JsonCache.exists(id, LIST_COMMENTS):
+            rank_list_comments = JsonCache.get_item(id, LIST_COMMENTS)
         else:
             rank_list_comments = RankedList.objects.get(
                 id=id).comment_section.comments
-            JsonCache.cache_item(id + LIST_COMMENTS, rank_list_comments)
+            JsonCache.cache_item(id, rank_list_comments, LIST_COMMENTS)
 
-        if sort == LIKES_DESC:
-            rank_list_comments = sorted(
-                rank_list_comments, key=lambda k: k.num_likes, reverse=True)
-        elif sort == DATE_DESC:
-            rank_list_comments = sorted(
-                rank_list_comments, key=lambda k: k.date_created, reverse=True)
-        elif sort == DATE_ASC:
-            rank_list_comments = sorted(
-                rank_list_comments, key=lambda k: k.date_created, reverse=False)
-
-        list_len = len(rank_list_comments)
-        lower, upper = get_slice_bounds(page)
-        if lower >= list_len:
-            raise InvalidPageError
-        upper = list_len if upper >= list_len else upper
-        upper = (lower+limit) if (lower+limit) <= upper else upper
-        return jsonify(rank_list_comments[lower:upper])
+        sort_list(rank_list_comments, sort)
+        return jsonify(slice_list(rank_list_comments, page))
 
 # /user_comments/<name>/<page>/<sort>
 # supports GET
@@ -143,15 +127,12 @@ class UserCommentsApi(Resource):
     @schema_val_error
     def get(self, name: str, page: int, sort: int):
         user_comments = []
-        if JsonCache.exists(name + USER_COMMENTS):
-            user_comments = JsonCache.get_item(name + USER_COMMENTS)
+        if JsonCache.exists(name, USER_COMMENTS):
+            user_comments = JsonCache.get_item(name, USER_COMMENTS)
         else:
             user_comments = Comment.objects(
                 user_name=name).order_by(sort_options[sort])
-            JsonCache.cache_item(name + USER_COMMENTS, user_comments)
-        list_len = len(user_comments)
-        lower, upper = get_slice_bounds(page)
-        if lower >= list_len:
-            raise InvalidPageError
-        upper = list_len if upper >= list_len else upper
-        return jsonify(user_comments[lower:upper])
+            JsonCache.cache_item(name, user_comments, USER_COMMENTS)
+
+        sort_list(user_comments, sort)
+        return jsonify(slice_list(user_comments, page))
