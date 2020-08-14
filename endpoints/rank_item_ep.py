@@ -13,8 +13,6 @@ from database.json_cacher import *
 
 # /rankitem/<id>
 # supports GET(list id), POST(list id), DELETE(item id), PUT(item id)
-
-
 class RankItemApi(Resource):
     # return all rank items in a list
     @list_does_not_exist_error
@@ -25,6 +23,15 @@ class RankItemApi(Resource):
 
     # create new rank item
     # TODO: data validation?
+    """
+    schema:
+    {
+        "item_name": string,
+        "rank": int between 1-10,
+        "description": optional string,
+        "picture": optional string
+    }
+    """
     @jwt_required
     @list_does_not_exist_error
     @schema_val_error
@@ -37,7 +44,7 @@ class RankItemApi(Resource):
         rank_item = RankItem(**body, belongs_to=rank_list, created_by=user)
         rank_item.save()
         rank_list.update(push__rank_list=rank_item)
-        JsonCache.delete(user.user_name, USER_LISTS)
+        JsonCache.sort_delete(user.user_name, USER_LISTS)
         return {'_id': str(rank_item.id)}, 200
 
     # delete a rank item
@@ -50,10 +57,19 @@ class RankItemApi(Resource):
         user = User.objects.get(id=uid)
         rank_item = RankItem.objects.get(id=id, created_by=user)
         rank_item.delete()
-        JsonCache.delete(user.user_name, USER_LISTS)
+        JsonCache.sort_delete(user.user_name, USER_LISTS)
         return 'Deleted rank item', 200
 
     # update a rank item
+    """
+    schema:
+    {
+        "item_name": string,
+        "rank": int between 1-10,
+        "description": optional string,
+        "picture": optional string
+    }
+    """
     @jwt_required
     @rank_update_error
     @schema_val_error
@@ -64,15 +80,26 @@ class RankItemApi(Resource):
         rank_item = RankItem.objects.get(id=id, created_by=user)
         body = request.get_json()
         rank_item.update(**body)
-        JsonCache.delete(user.user_name, USER_LISTS)
+        JsonCache.sort_delete(user.user_name, USER_LISTS)
         return 'Updated rank item', 200
 
 # /rankitems/<id>
 # supports PUT(list id)
-
-
 class BulkUpdateApi(Resource):
     # add multpile rank items to a list
+    """
+    schema:
+    {
+        "rank_list": [
+            {
+                "item_name": string,
+                "rank": int between 1-10,
+                "description": optional string,
+                "picture": optional string
+            }
+        ]
+    }
+    """
     @jwt_required
     @rank_update_error
     @schema_val_error
@@ -84,5 +111,5 @@ class BulkUpdateApi(Resource):
         rank_list = RankedList.objects.get(id=id, created_by=user)
         rank_list.update(push_all__rank_list=json_to_ref(
             body['rank_list'], rank_list, user))
-        JsonCache.delete(user.user_name, USER_LISTS)
+        JsonCache.sort_delete(user.user_name, USER_LISTS)
         return 'Added rank items', 200

@@ -17,8 +17,9 @@ SEARCH_LISTS = 'search_lists'#expire 1 hour
 USER_LISTS = 'user_lists'#expire 1 hour
 LIST_COMMENTS = 'list_comments'#expire 2 hours
 USER_COMMENTS = 'user_comments'#expire 2 hours
+DISCOVER_LIST = 'discover_list'#expires 0.5 hour
 
-hours_in_sec = lambda hours: hours * 60 * 60
+hours_in_sec = lambda hours: int(hours * 60 * 60)
 
 EXPIRE = hours_in_sec(2)
 
@@ -57,6 +58,6 @@ class JsonCache:
         cache.delete(key+itemType)
 
     @staticmethod
-    def sort_delete(key, itemType)
+    def sort_delete(key, itemType):
         for i in range(0, 3):
             cache.delete(key + i + itemType)

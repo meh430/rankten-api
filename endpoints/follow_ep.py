@@ -8,8 +8,6 @@ from database.json_cacher import *
 
 # /follow/<name>
 # supports POST
-
-
 class FollowApi(Resource):
     # follows/unfollows specified user
     @jwt_required
@@ -38,8 +36,6 @@ class FollowApi(Resource):
 
 # /following/<name>
 # supports GET
-
-
 class FollowingApi(Resource):
     # returns a list of user's followed by the specified user
     @user_does_not_exist_error
@@ -51,14 +47,12 @@ class FollowingApi(Resource):
         else:
             following_json = get_compact_uinfo(
                 User.objects.get(user_name=name).following)
-            JsonCache.cache_item(name, following_json, FOLLOWING)
+            JsonCache.cache_item(name, following_json, FOLLOWING, ex=hours_in_sec(6))
 
             return jsonify(following_json)
 
 # /followers/<name>
 # supports GET
-
-
 class FollowersApi(Resource):
     @user_does_not_exist_error
     @schema_val_error
@@ -68,6 +62,6 @@ class FollowersApi(Resource):
         else:
             followers_json = get_compact_uinfo(
                 User.objects.get(user_name=name).followers)
-            JsonCache.cache_item(name, followers_json, FOLLOWERS)
+            JsonCache.cache_item(name, followers_json, FOLLOWERS, ex=hours_in_sec(6))
 
             return jsonify(followers_json)

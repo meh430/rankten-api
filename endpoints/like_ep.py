@@ -8,8 +8,6 @@ from endpoints.comment_ep import comment_parent_id
 from utils import *
 # /like/<id>
 # supports POST, GET
-
-
 class LikeApi(Resource):
     # like/unlike a list
     @jwt_required
@@ -40,7 +38,8 @@ class LikeApi(Resource):
             user_list_coll.update(pull__liked_lists=curr_list)
 
         JsonCache.delete(id, LIKED_USERS)
-        JsonCache.delete(list_owner.user_name, USER_LISTS)
+        JsonCache.delete(uid, LIKED_LISTS)
+        JsonCache.sort_delete(list_owner.user_name, USER_LISTS)
 
         return ('liked list' if exec_like else 'unliked list'), 200
 
@@ -60,8 +59,6 @@ class LikeApi(Resource):
 
 # /like_comment/<id>
 # supports POST
-
-
 class LikeCommentApi(Resource):
     # like/unlike a comment
     @jwt_required
@@ -83,14 +80,12 @@ class LikeCommentApi(Resource):
             comment.made_by.update(dec__rank_points=1)
 
 
-        JsonCache.delete(comment_parent_id(id), LIST_COMMENTS)
-        JsonCache.delete(comment.made_by.user_name, USER_COMMENTS)
+        JsonCache.sort_delete(comment_parent_id(id), LIST_COMMENTS)
+        JsonCache.sort_delete(comment.made_by.user_name, USER_COMMENTS)
         return ('liked comment' if exec_like else 'unliked comment'), 200
 
 # /likes/<page>/<sort>
 # supports GET
-
-
 class LikedListsApi(Resource):
     # return all the lists liked by a user
     @jwt_required
@@ -101,5 +96,12 @@ class LikedListsApi(Resource):
             raise InvalidPageError
         uid = get_jwt_identity()
         user = User.objects.get(id=uid)
-        liked_lists = user.created_lists.liked_lists
-        return jsonify(ranked_list_card(slice_list(liked_lists, page)))
+        liked_lists = []
+        if JsonCache.exists(uid, LIKED_LISTS):
+            liked_lists = JsonCache.get_item(uid, LIKED_LISTS)
+        else:
+            liked_lists = user.created_lists.liked_lists
+            liked_lists = ranked_list_card(liked_lists)
+            JsonCache.cache_item(uid, liked_lists, LIKED_LISTS)
+
+        return jsonify(slice_list(liked_lists, page))

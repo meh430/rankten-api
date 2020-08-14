@@ -7,7 +7,6 @@ def get_slice_bounds(page, num_items=50):
     return (lower, upper)
 
 def sort_list(documents, sort):
-    print("SORTINGNGJEFIOSJOIJD")
     if sort == LIKES_DESC:
         documents = sorted(documents, key=lambda k: k['num_likes'] if isinstance(
             k, dict) else k.num_likes, reverse=True)
