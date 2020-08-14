@@ -94,13 +94,12 @@ class LikeCommentApi(Resource):
 class LikedListsApi(Resource):
     # return all the lists liked by a user
     @jwt_required
-    @check_ps
     @user_does_not_exist_error
     @schema_val_error
-    def get(self, page: int, sort: int):
+    def get(self, page: int):
+        if page <= 0:
+            raise InvalidPageError
         uid = get_jwt_identity()
         user = User.objects.get(id=uid)
         liked_lists = user.created_lists.liked_lists
-        sort_list(liked_lists, sort)
-        print(liked_lists)
         return jsonify(ranked_list_card(slice_list(liked_lists, page)))

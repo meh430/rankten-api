@@ -1,4 +1,4 @@
-from flask import request
+from flask import request, jsonify
 from flask_restful import Resource
 from flask_jwt_extended import jwt_required, get_jwt_identity, create_access_token
 from database.models import *
@@ -7,8 +7,6 @@ import datetime
 
 # /signup
 # supports POST
-
-
 class SignUpApi(Resource):
     """
     schema:
@@ -30,13 +28,11 @@ class SignUpApi(Resource):
         user.save()
         user_lists.update(belongs_to=user)
         acc_token = create_access_token(identity=str(
-            user.id), expires_delta=datetime.timedelta(days=7))
+            user.id), expires_delta=datetime.timedelta(days=7)) 
         return {'jwt_token': acc_token}, 200
 
 # /login
 # supports POST
-
-
 class LoginApi(Resource):
     # return newly generated jwt token for login
     """
@@ -61,12 +57,10 @@ class LoginApi(Resource):
 
 # /validate_token
 # supports POST
-
-
 class TokenApi(Resource):
     # checks token validity
     @jwt_required
     def post(self):
         uid = get_jwt_identity()
         user = User.objects.get(id=uid)
-        return {'user_name': str(user.user_name)}, 200
+        return jsonify(user)
