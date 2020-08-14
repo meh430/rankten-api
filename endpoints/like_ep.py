@@ -1,13 +1,11 @@
 from flask import request, jsonify
 from flask_restful import Resource
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from database.db import get_slice_bounds
 from database.models import *
 from database.json_cacher import *
 from errors import *
-from endpoints.users_ep import get_compact_uinfo
 from endpoints.comment_ep import comment_parent_id
-from endpoints.ranked_list_ep import ranked_list_card
+from utils import *
 # /like/<id>
 # supports POST, GET
 
@@ -104,4 +102,5 @@ class LikedListsApi(Resource):
         user = User.objects.get(id=uid)
         liked_lists = user.created_lists.liked_lists
         sort_list(liked_lists, sort)
-        return jsonify(ranked_list_card(slice_list(liked_list, page)))
+        print(liked_lists)
+        return jsonify(ranked_list_card(slice_list(liked_lists, page)))

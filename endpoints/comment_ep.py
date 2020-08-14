@@ -2,10 +2,9 @@ from flask import request, jsonify
 from flask_restful import Resource
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from database.models import *
-from database.db import cache, get_slice_bounds
 from database.json_cacher import *
 from errors import *
-import simdjson as json
+from utils import *
 
 # /comment/<id>
 # supports GET(comment id), POST(list id), PUT(comment id), DELETE(comment id)
@@ -26,7 +25,7 @@ class CommentApi(Resource):
         # id here is comment id
         # get the comment section it belongs to and then get the list the comment section belongs to
         rank_list = Comment.objects.get(id=id).belongs_to.belongs_to
-        return rank_list.to_json(), 200
+        return jsonify(rank_list)
 
     # create a new comment on a specifed list
     @jwt_required

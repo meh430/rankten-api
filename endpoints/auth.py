@@ -10,6 +10,14 @@ import datetime
 
 
 class SignUpApi(Resource):
+    """
+    schema:
+    {
+        "user_name": string,
+        "password": string,
+        "bio": optional string
+    }
+    """
     # creates a new user document and return generated jwt token
     @user_already_exists_error
     @schema_val_error
@@ -31,6 +39,13 @@ class SignUpApi(Resource):
 
 class LoginApi(Resource):
     # return newly generated jwt token for login
+    """
+    schema:
+    {
+        "user_name": string,
+        "password": string
+    }
+    """
     @user_does_not_exist_error
     @schema_val_error
     def post(self):

@@ -1,9 +1,8 @@
 from flask import request, jsonify
 from flask_restful import Resource
-from database.db import get_slice_bounds
 from database.models import RankedList
 from errors import *
-from ranked_list_ep import endpoints.ranked_list_card
+from utils import *
 
 # /discover/<page>/<sort>
 # supports GET

@@ -1,4 +1,5 @@
 from database.db import cache
+from bson import json_util
 import simdjson as json
 # mongo index + KEY
 FOLLOWING = 'following'
@@ -17,11 +18,11 @@ class JsonCache:
     def cache_item(key, item, itemType=None):
         if itemType == LIST_COMMENTS or itemType == USER_COMMENTS:
             cache.set(key + itemType,
-                      json.dumps([comm.to_json() for comm in item]), ex=EXPIRE)
+                      json.dumps([comm.to_json() for comm in item], default=json_util.default), ex=EXPIRE)
         elif not itemType:
-            cache.set(key + itemType, json.dumps(item), ex=EXPIRE)
+            cache.set(key + itemType, json.dumps(item, default=json_util.default), ex=EXPIRE)
         else:
-            cache.set(key, json.dumps(item), ex=EXPIRE)
+            cache.set(key, json.dumps(item, default=json_util.default), ex=EXPIRE)
 
     @staticmethod
     def get_item(key, itemType=None):

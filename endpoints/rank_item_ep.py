@@ -6,8 +6,8 @@ from flask import request, jsonify
 from flask_restful import Resource
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from database.models import *
-from database.db import get_slice_bounds
 from errors import *
+from utils import *
 from endpoints.ranked_list_ep import json_to_ref
 from database.json_cacher import *
 

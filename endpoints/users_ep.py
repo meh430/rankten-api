@@ -5,10 +5,6 @@ from database.models import User
 from errors import *
 from database.json_cacher import *
 
-
-def get_compact_uinfo(user_list):
-    return [{'user_name': f.user_name, 'prof_pic': f.prof_pic, 'bio': f.bio if len(f.bio) <= 50 else (f.bio[:47]+'...')} for f in user_list]
-
 # /users
 # supports PUT
 
@@ -29,6 +25,9 @@ class UsersApi(Resource):
         body = request.get_json()
         if 'user_name' in body:
             body.pop('user_name')
+        
+        if 'rank_points' in body or 'date_created' in body or 'num_comments' in body or 'list_num' in body:
+            raise SchemaValidationError
 
         if 'prof_pic' in body:
             user_comments = Comment.objects(user_name=user.user_name)
@@ -57,4 +56,4 @@ class UserApi(Resource):
     @user_does_not_exist_error
     @schema_val_error
     def get(self, name: str):
-        return Response(User.objects.get(user_name=name).exclude('password').to_json(), mimetype='application/json', status=200)
+        return Response(User.objects(user_name=name).exclude('password').first().to_json(), mimetype='application/json', status=200)
