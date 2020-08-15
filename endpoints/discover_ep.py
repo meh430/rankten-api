@@ -17,17 +17,15 @@ class DiscoverApi(Resource):
             refresh = bool(request.args['re'])
 
         all_lists = []
-
-        if not refresh and JsonCache.exists(str(page), DISCOVER_LIST, sort):
-            all_lists = JsonCache.get_item(str(page), DISCOVER_LIST, sort)
+        if not refresh and JsonCache.exists(key=DISCOVER_LIST, itemType=DISCOVER_LIST, page=page, sort=sort):
+            all_lists = JsonCache.get_item(key=DISCOVER_LIST, itemType=DISCOVER_LIST, page=page, sort=sort)
         else:
-            lower, upper = get_slice_bounds(page)
-            list_len = RankedList.objects.count()
-            if lower >= list_len:
+            bounds = validate_bounds(RankedList.objects.count(), page)
+            if not bounds:
                 raise InvalidPageError
-            upper = list_len if upper >= list_len else upper
-            all_lists = RankedList.objects().order_by(sort_options[sort])[lower:upper]
+            
+            all_lists = RankedList.objects().order_by(sort_options[sort])[bounds[0]:bounds[1]]
             all_lists = ranked_list_card(all_lists)
-            JsonCache.cache_item(str(page), all_lists, DISCOVER_LIST, sort, hours_in_sec(0.5))
-        
+            JsonCache.cache_item(key=DISCOVER_LIST, itemType=DISCOVER_LIST, page=page, sort=sort, item=all_lists)
+
         return all_lists, 200

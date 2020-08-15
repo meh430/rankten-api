@@ -11,7 +11,7 @@ class SearchUsersApi(Resource):
     @schema_val_error
     def get(self, page: int, sort: int):
         query = request.args.get('q')
-        lower, upper = get_slice_bounds(page, 100)
+        lower, upper = get_slice_bounds(page, 50)
         list_len = User.objects(user_name__icontains=query).only('user_name', 'rank_points', 'prof_pic').count()
         if lower >= list_len:
             raise InvalidPageError

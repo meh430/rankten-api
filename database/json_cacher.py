@@ -3,21 +3,23 @@ from bson import json_util
 import simdjson as json
 #refresh to get uncached
 
-# mongo index + TYPE
+#mongo index + TYPE
 FOLLOWING = 'following'#expire 12 hours
 FOLLOWERS = 'follwers'#expire 12 hours
 LIKED_USERS = 'liked_users'#expire 2 hours
-LIKED_LISTS = 'liked_lists'#expire 2 hours
 FEED = 'feed'#expire 2 hours
 
+#mongo index + TYPE + page
+LIKED_LISTS = 'liked_lists'#expire 2 hours
+
 #cache sort for pagination
-#mongo index + sort + TYPE
-SEARCH_USERS = 'search_users'#expire 1 hour
-SEARCH_LISTS = 'search_lists'#expire 1 hour
-USER_LISTS = 'user_lists'#expire 1 hour
+#mongo index + TYPE + page + sort
+USER_LISTS = 'user_lists'#expire 0.5 hour
 LIST_COMMENTS = 'list_comments'#expire 2 hours
 USER_COMMENTS = 'user_comments'#expire 2 hours
-DISCOVER_LIST = 'discover_list'#expires 0.5 hour
+DISCOVER_LIST = 'discover_list'#expires 2 hour
+
+paginated = [LIKED_LISTS, USER_LISTS, LIST_COMMENTS, USER_COMMENTS, DISCOVER_LIST]
 
 hours_in_sec = lambda hours: int(hours * 60 * 60)
 
@@ -26,38 +28,51 @@ EXPIRE = hours_in_sec(2)
 serializer = json_util.default
 
 class JsonCache:
-    @staticmethod
-    def cache_item(key, item, itemType, sort="", ex=EXPIRE):
-        sort = str(sort)
-        if itemType == LIST_COMMENTS or itemType == USER_COMMENTS:
-            cache.set(key + sort + itemType,
-                json.dumps([comm.to_json() for comm in item], default=serializer), ex=ex)
-        elif itemType == SEARCH_USERS:
-            pass
-        else:
-            cache.set(key + sort + itemType, json.dumps(item, default=serializer), ex=ex)
 
     @staticmethod
-    def get_item(key, itemType, sort=""):
+    def cache_item(key="", itemType="", page="", sort="", item="", ex=EXPIRE):
+        sort = str(sort)
+        page = str(sort)
+        if itemType == LIST_COMMENTS or itemType == USER_COMMENTS:
+            cache.set(key + itemType + page + sort,
+                json.dumps([comm.to_json() for comm in item], default=serializer), ex=ex)
+        else:
+            cache.set(key + itemType + page + sort, json.dumps(item, default=serializer), ex=ex)
+
+    @staticmethod
+    def get_item(key="", itemType="", page="", sort=""):
+        page = str(page)
         sort = str(sort)
         if itemType == LIST_COMMENTS or itemType == USER_COMMENTS:
-            comm_list = json.loads(cache.get(key + sort + itemType))
+            comm_list = json.loads(cache.get(key + itemType + page + sort))
             return [json.loads(comm) for comm in comm_list]
-        elif itemType == SEARCH_USERS:
-            pass
         else:
-            return json.loads(cache.get(key + sort + itemType))
+            return json.loads(cache.get(key + itemType + page + sort))
  
 
     @staticmethod
-    def exists(key, itemType, sort=""):
-        return cache.exists(key+str(sort)+itemType)
+    def exists(key="", itemType="", page="", sort=""):
+        page = str(page)
+        sort = str(sort)
+        return cache.exists(key + itemType + page + sort)
 
     @staticmethod
-    def delete(key, itemType):
-        cache.delete(key+itemType)
+    def delete(key="", itemType=""):
+        cache.delete(key + itemType)
 
     @staticmethod
-    def sort_delete(key, itemType):
-        for i in range(0, 3):
-            cache.delete(key + i + itemType)
+    def sort_delete(key="", itemType=""):
+        for key in cache.scan_iter(key+itemType+"*"):
+            cache.delete(key)
+
+    #[key="", itemType="", page="", sort=""]
+    @staticmethod
+    def bulk_delete(*args):
+        for item in args:
+            if item['itemType'] in paginated:
+                cache.sort_delete(key=item['key'], itemType=item['itemType'])
+            else:
+                cache.delete(key=item['key'], itemType=item['itemType'])
+    
+def key_dict(key="", itemType=""):
+    return {'key': key, 'itemType': itemType}

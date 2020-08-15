@@ -1,7 +1,7 @@
 sort_options = {0: '-num_likes', 1: '-date_created', 2: '+date_created'}
 LIKES_DESC, DATE_DESC, DATE_ASC = 0, 1, 2
 
-def get_slice_bounds(page, num_items=25):
+def get_slice_bounds(page, num_items=10):
     upper = int(page) * num_items
     lower = upper - num_items
     return (lower, upper)
@@ -19,15 +19,22 @@ def sort_list(documents, sort):
 
     return documents
 
-
-def slice_list(documents, page):
-    list_len = len(documents)
+def validate_bounds(list_len, page):
     lower, upper = get_slice_bounds(page)
     if lower >= list_len:
-        return ['Trying to access a page that does not exist']
-    upper = list_len if upper >= list_len else upper
+        return tuple(())
 
-    return documents[lower:upper]
+    upper = list_len if upper >= list_len else upper
+    return (lower, upper)
+    
+
+
+def slice_list(documents, page):
+    bounds = validate_bounds(len(documents), page)
+    if len(bounds) == 0:
+        return ['Trying to access a page that does not exist']
+ 
+    return documents[bounds[0]:bounds[1]]
 
 def get_compact_uinfo(user_list):
     return [{'user_name': f.user_name, 'prof_pic': f.prof_pic, 'bio': f.bio if len(f.bio) <= 50 else (f.bio[:47]+'...')} for f in user_list]

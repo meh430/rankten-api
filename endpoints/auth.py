@@ -52,7 +52,7 @@ class LoginApi(Resource):
             raise UnauthorizedError
 
         acc_token = create_access_token(identity=str(
-            user.id), expires_delta=datetime.timedelta(minutes=55.0))
+            user.id), expires_delta=datetime.timedelta(days=7))
         return {'jwt_token': acc_token}, 200
 
 # /validate_token

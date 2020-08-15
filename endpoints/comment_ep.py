@@ -50,9 +50,14 @@ class CommentApi(Resource):
 
         #comment was added so some of the cache is invalid
         #delete all comments made by user, all comments on current list, all of the list owner's lists
-        JsonCache.sort_delete(user.user_name, USER_COMMENTS)
-        JsonCache.sort_delete(id, LIST_COMMENTS)
-        JsonCache.sort_delete(rank_list.user_name, USER_LISTS)
+        JsonCache.bulk_delete(
+            key_dict(key=user.user_name, itemType=USER_COMMENTS), 
+            key_dict(key=id, itemType=LIST_COMMENTS), 
+            key_dict(key=rank_list.user_name, itemType=USER_LISTS)
+        )
+        #JsonCache.sort_delete(user.user_name, USER_COMMENTS)
+        #JsonCache.sort_delete(id, LIST_COMMENTS)
+        #JsonCache.sort_delete(rank_list.user_name, USER_LISTS)
 
         return {'_id': str(comment.id)}, 200
 
@@ -75,10 +80,15 @@ class CommentApi(Resource):
 
         #comment updated so some of the cache is invalid
         #delete all comments made by user, all comments on current list, all of the list owner's lists
-        JsonCache.sort_delete(user.user_name, USER_COMMENTS)
         parent_id = comment_parent_id(id)
-        JsonCache.sort_delete(parent_id, LIST_COMMENTS)
-        JsonCache.sort_delete(RankedList.objects.get(id=parent_id).user_name, USER_LISTS)
+        JsonCache.bulk_delete(
+            key_dict(key=user.user_name, itemType=USER_COMMENTS),
+            key_dict(key=parent_id, itemType=LIST_COMMENTS),
+            key_dict(key=RankedList.objects.get(id=parent_id).user_name, itemType=USER_LISTS)
+        )
+        #JsonCache.sort_delete(user.user_name, USER_COMMENTS)
+        #JsonCache.sort_delete(parent_id, LIST_COMMENTS)
+        #JsonCache.sort_delete(RankedList.objects.get(id=parent_id).user_name, USER_LISTS)
 
         return 'Updated comment', 200
 
@@ -97,10 +107,14 @@ class CommentApi(Resource):
         comment.delete()
         user.update(dec__num_comments=1)
 
-
-        JsonCache.sort_delete(user.user_name, USER_COMMENTS)
-        JsonCache.sort_delete(str(rank_list.id), LIST_COMMENTS)
-        JsonCache.sort_delete(rank_list.user_name, USER_LISTS)
+        JsonCache.bulk_delete(
+            key_dict(key=user.user_name, itemType=USER_COMMENTS),
+            key_dict(key=str(rank_list.id), itemType=LIST_COMMENTS),
+            key_dict(key=rank_list.user_name, itemType=USER_LISTS)
+        )
+        #JsonCache.sort_delete(user.user_name, USER_COMMENTS)
+        #JsonCache.sort_delete(str(rank_list.id), LIST_COMMENTS)
+        #JsonCache.sort_delete(rank_list.user_name, USER_LISTS)
 
         return 'Deleted comment', 200
 
@@ -117,12 +131,12 @@ class CommentsApi(Resource):
             refresh = bool(request.args['re'])
         
         rank_list_comments = []
-        if not refresh and JsonCache.exists(id, LIST_COMMENTS, sort):
-            rank_list_comments = JsonCache.get_item(id, LIST_COMMENTS, sort)
+        if not refresh and JsonCache.exists(key=id, itemType=LIST_COMMENTS, sort=sort):
+            rank_list_comments = JsonCache.get_item(key=id, itemType=LIST_COMMENTS, sort=sort)
         else:
-            rank_list_comments = RankedList.objects.get(id=id).comment_section.comments
+            rank_list_comments = RankedList.objects.get(id=id).comment_section.comments[]
             rank_list_comments = sort_list(rank_list_comments, sort)
-            JsonCache.cache_item(id, rank_list_comments, LIST_COMMENTS, sort)
+            JsonCache.cache_item(key=id, item=rank_list_comments, itemType=LIST_COMMENTS, sort=sort)
         
         return slice_list(rank_list_comments, page), 200
 
@@ -139,11 +153,13 @@ class UserCommentsApi(Resource):
             refresh = bool(request.args['re'])
 
         user_comments = []
-        if not refresh and JsonCache.exists(name, USER_COMMENTS, sort):
-            user_comments = JsonCache.get_item(name, USER_COMMENTS, sort)
+        if not refresh and JsonCache.exists(key=name, itemType=USER_COMMENTS, page=page, sort=sort):
+            user_comments = JsonCache.get_item(key=name, itemType=USER_COMMENTS, page=page, sort=sort)
         else:
-            user_comments = Comment.objects(
-                user_name=name).order_by(sort_options[sort])
-            JsonCache.cache_item(name, user_comments, USER_COMMENTS, sort)
+            bounds = validate_bounds(Comment.objects(user_name=name).count())
+            if not bounds:
+                raise InvalidPageError
+            user_comments = Comment.objects(user_name=name).order_by(sort_options[sort])[bounds[0]:bounds[1]]
+            JsonCache.cache_item(key=name, item=user_comments, itemType=USER_COMMENTS, page=page, sort=sort)
 
-        return slice_list(user_comments, page), 200
+        return user_comments, 200

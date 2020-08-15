@@ -37,9 +37,14 @@ class LikeApi(Resource):
             list_owner.update(dec__rank_points=1)
             user_list_coll.update(pull__liked_lists=curr_list)
 
-        JsonCache.delete(id, LIKED_USERS)
-        JsonCache.delete(uid, LIKED_LISTS)
-        JsonCache.sort_delete(list_owner.user_name, USER_LISTS)
+        #JsonCache.delete(id, LIKED_USERS)
+        #JsonCache.delete(uid, LIKED_LISTS)
+        #JsonCache.sort_delete(list_owner.user_name, USER_LISTS)
+        JsonCache.bulk_delete(
+            key_dict(key=id, itemType=LIKED_USERS),
+            key_dict(key=uid, itemType=LIKED_LISTS),
+            key_dict(key=list_owner.user_name, itemType=USER_LISTS)
+        )
 
         return ('liked list' if exec_like else 'unliked list'), 200
 
@@ -52,14 +57,14 @@ class LikeApi(Resource):
             refresh = bool(request.args['re'])
         
         liked_users = []
-        if not refresh and JsonCache.exists(id, LIKED_USERS):
-            liked_users = JsonCache.get_item(id, LIKED_USERS)
+        if not refresh and JsonCache.exists(key=id, itemType=LIKED_USERS):
+            liked_users = JsonCache.get_item(key=id, itemType=LIKED_USERS)
         else:
             liked_users = get_compact_uinfo(
                 RankedList.objects.get(id=id).liked_users)
-            JsonCache.cache_item(id, liked_users, LIKED_USERS)
+            JsonCache.cache_item(key=id, item=liked_users, itemType=LIKED_USERS)
 
-        return jsonify(liked_users)
+        return liked_users, 200
 
 # /like_comment/<id>
 # supports POST
@@ -84,8 +89,12 @@ class LikeCommentApi(Resource):
             comment.made_by.update(dec__rank_points=1)
 
 
-        JsonCache.sort_delete(comment_parent_id(id), LIST_COMMENTS)
-        JsonCache.sort_delete(comment.made_by.user_name, USER_COMMENTS)
+        #JsonCache.sort_delete(comment_parent_id(id), LIST_COMMENTS)
+        #JsonCache.sort_delete(comment.made_by.user_name, USER_COMMENTS)
+        JsonCache.bulk_delete(
+            key_dict(key=comment_parent_id(id), itemType=LIST_COMMENTS),
+            key_dict(key=comment.made_by.user_name, itemType=USER_COMMENTS)
+        )
         return ('liked comment' if exec_like else 'unliked comment'), 200
 
 # /likes/<page>/<sort>
@@ -102,14 +111,20 @@ class LikedListsApi(Resource):
 
         if page <= 0:
             raise InvalidPageError
+        
         uid = get_jwt_identity()
         user = User.objects.get(id=uid)
+
         liked_lists = []
-        if not refresh and JsonCache.exists(uid, LIKED_LISTS):
-            liked_lists = JsonCache.get_item(uid, LIKED_LISTS)
+        if not refresh and JsonCache.exists(key=uid, itemType=LIKED_LISTS, page=page):
+            liked_lists = JsonCache.get_item(key=uid, itemType=LIKED_LISTS, page=page)
         else:
             liked_lists = user.created_lists.liked_lists
-            liked_lists = ranked_list_card(liked_lists)
-            JsonCache.cache_item(uid, liked_lists, LIKED_LISTS)
+            bounds = validate_bounds(len(liked_lists), page)
+            if not bounds:
+                raise InvalidPageError
+            
+            liked_lists = ranked_list_card(liked_lists[bounds[0]:bounds[1]])
+            JsonCache.cache_item(key=uid, item=liked_lists, itemType=LIKED_LISTS, page=page)
 
-        return jsonify(slice_list(liked_lists, page))
+        return liked_lists, 200

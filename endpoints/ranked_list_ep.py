@@ -40,7 +40,7 @@ class RankedListApi(Resource):
         body = request.get_json()
         user = User.objects.get(id=uid)
         RankedList.objects.get(id=id, created_by=user).update(**body)
-        JsonCache.sort_delete(user.user_name, USER_LISTS)
+        JsonCache.sort_delete(key=user.user_name, itemType=USER_LISTS)
         return 'Updated ranked list', 200
 
     # delete specified list
@@ -53,7 +53,7 @@ class RankedListApi(Resource):
         ranked_list = RankedList.objects.get(id=id, created_by=user)
         ranked_list.delete()
         user.update(dec__list_num=1)
-        JsonCache.sort_delete(user.user_name, USER_LISTS)
+        JsonCache.sort_delete(key=user.user_name, itemType=USER_LISTS)
         return 'Deleted ranked list', 200
 
 # /rankedlist
@@ -97,7 +97,7 @@ class RankedListsApi(Resource):
 
         user.created_lists.update(push__rank_lists=new_list)
         user.update(inc__list_num=1)
-        JsonCache.sort_delete(user.user_name, USER_LISTS)
+        JsonCache.sort_delete(key=user.user_name, itemType=USER_LISTS)
         return {'_id': str(new_list.id)}, 200
 
 # /rankedlists/<name>/<page>/<sort>
@@ -112,13 +112,15 @@ class UserRankedListsApi(Resource):
         if 're' in request.args:
             refresh = bool(request.args['re'])
         user_lists = []
-        if not refresh and JsonCache.exists(name, USER_LISTS, sort):
-            user_lists = JsonCache.get_item(name, USER_LISTS, sort)
+        if not refresh and JsonCache.exists(key=name, itemType=USER_LISTS, page=page, sort=sort):
+            user_lists = JsonCache.get_item(key=name, itemType=USER_LISTS, page=page, sort=sort)
         else:
-            user_lists = ranked_list_card(RankedList.objects(user_name=name).order_by(sort_options[sort]))
-            JsonCache.cache_item(name, user_lists, USER_LISTS, sort)
-
-        return slice_list(user_lists, page), 200
+            bounds = validate_bounds(RankedList.objects(user_name=name).count(), page)
+            if not bounds:
+                raise InvalidPageError
+            user_lists = ranked_list_card(RankedList.objects(user_name=name).order_by(sort_options[sort])[bounds[0]:bounds[1]])
+            JsonCache.cache_item(key=name, itemType=USER_LISTS, page=page, sort=sort, item=user_lists)
+        return user_lists, 200
 #/feed
 #supports GET
 class FeedApi(Resource):
