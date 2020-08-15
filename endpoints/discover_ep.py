@@ -17,8 +17,8 @@ class DiscoverApi(Resource):
             refresh = bool(request.args['re'])
 
         all_lists = []
-        if not refresh and JsonCache.exists(key=DISCOVER_LIST, itemType=DISCOVER_LIST, page=page, sort=sort):
-            all_lists = JsonCache.get_item(key=DISCOVER_LIST, itemType=DISCOVER_LIST, page=page, sort=sort)
+        if not refresh and JsonCache.exists(itemType=DISCOVER_LIST, page=page, sort=sort):
+            all_lists = JsonCache.get_item(itemType=DISCOVER_LIST, page=page, sort=sort)
         else:
             bounds = validate_bounds(RankedList.objects.count(), page)
             if not bounds:
@@ -26,6 +26,6 @@ class DiscoverApi(Resource):
             
             all_lists = RankedList.objects().order_by(sort_options[sort])[bounds[0]:bounds[1]]
             all_lists = ranked_list_card(all_lists)
-            JsonCache.cache_item(key=DISCOVER_LIST, itemType=DISCOVER_LIST, page=page, sort=sort, item=all_lists)
+            JsonCache.cache_item(itemType=DISCOVER_LIST, page=page, sort=sort, item=all_lists)
 
         return all_lists, 200

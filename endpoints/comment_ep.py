@@ -134,11 +134,11 @@ class CommentsApi(Resource):
         if not refresh and JsonCache.exists(key=id, itemType=LIST_COMMENTS, sort=sort):
             rank_list_comments = JsonCache.get_item(key=id, itemType=LIST_COMMENTS, sort=sort)
         else:
-            rank_list_comments = RankedList.objects.get(id=id).comment_section.comments[]
+            rank_list_comments = RankedList.objects.get(id=id).comment_section.comments
             rank_list_comments = sort_list(rank_list_comments, sort)
             JsonCache.cache_item(key=id, item=rank_list_comments, itemType=LIST_COMMENTS, sort=sort)
         
-        return slice_list(rank_list_comments, page), 200
+        return jsonify(slice_list(rank_list_comments, page))
 
 # /user_comments/<name>/<page>/<sort>
 # supports GET
@@ -156,10 +156,10 @@ class UserCommentsApi(Resource):
         if not refresh and JsonCache.exists(key=name, itemType=USER_COMMENTS, page=page, sort=sort):
             user_comments = JsonCache.get_item(key=name, itemType=USER_COMMENTS, page=page, sort=sort)
         else:
-            bounds = validate_bounds(Comment.objects(user_name=name).count())
+            bounds = validate_bounds(Comment.objects(user_name=name).count(), page)
             if not bounds:
                 raise InvalidPageError
             user_comments = Comment.objects(user_name=name).order_by(sort_options[sort])[bounds[0]:bounds[1]]
             JsonCache.cache_item(key=name, item=user_comments, itemType=USER_COMMENTS, page=page, sort=sort)
 
-        return user_comments, 200
+        return jsonify(user_comments)

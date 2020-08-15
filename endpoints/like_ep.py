@@ -97,7 +97,7 @@ class LikeCommentApi(Resource):
         )
         return ('liked comment' if exec_like else 'unliked comment'), 200
 
-# /likes/<page>/<sort>
+# /likes/<page>
 # supports GET
 class LikedListsApi(Resource):
     # return all the lists liked by a user
@@ -108,7 +108,7 @@ class LikedListsApi(Resource):
         refresh = False
         if 're' in request.args:
             refresh = bool(request.args['re'])
-
+        page = int(page)
         if page <= 0:
             raise InvalidPageError
         

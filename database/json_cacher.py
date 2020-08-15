@@ -32,17 +32,18 @@ class JsonCache:
     @staticmethod
     def cache_item(key="", itemType="", page="", sort="", item="", ex=EXPIRE):
         sort = str(sort)
-        page = str(sort)
+        page = str(page)
+        print("CACHING REQUEST: " + key + itemType + page + sort)
         if itemType == LIST_COMMENTS or itemType == USER_COMMENTS:
-            cache.set(key + itemType + page + sort,
-                json.dumps([comm.to_json() for comm in item], default=serializer), ex=ex)
+            cache.set(key + itemType + page + sort, json.dumps([comm.to_json() for comm in item], default=serializer), ex=ex)
         else:
             cache.set(key + itemType + page + sort, json.dumps(item, default=serializer), ex=ex)
 
     @staticmethod
     def get_item(key="", itemType="", page="", sort=""):
-        page = str(page)
         sort = str(sort)
+        page = str(page)
+        print("GETTING FROM CACHE")
         if itemType == LIST_COMMENTS or itemType == USER_COMMENTS:
             comm_list = json.loads(cache.get(key + itemType + page + sort))
             return [json.loads(comm) for comm in comm_list]
@@ -54,7 +55,9 @@ class JsonCache:
     def exists(key="", itemType="", page="", sort=""):
         page = str(page)
         sort = str(sort)
-        return cache.exists(key + itemType + page + sort)
+        has_key = cache.exists(key + itemType + page + sort)
+        print(key + itemType + page + sort + ": " + str(has_key))
+        return has_key
 
     @staticmethod
     def delete(key="", itemType=""):
@@ -70,9 +73,9 @@ class JsonCache:
     def bulk_delete(*args):
         for item in args:
             if item['itemType'] in paginated:
-                cache.sort_delete(key=item['key'], itemType=item['itemType'])
+                JsonCache.sort_delete(key=item['key'], itemType=item['itemType'])
             else:
-                cache.delete(key=item['key'], itemType=item['itemType'])
+                JsonCache.delete(key=item['key'], itemType=item['itemType'])
     
 def key_dict(key="", itemType=""):
     return {'key': key, 'itemType': itemType}
