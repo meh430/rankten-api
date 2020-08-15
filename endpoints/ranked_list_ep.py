@@ -5,6 +5,7 @@ from database.models import *
 from errors import *
 from utils import *
 from database.json_cacher import *
+import datetime
 
 
 def json_to_ref(json_list, list_ref, user):
@@ -128,6 +129,8 @@ class FeedApi(Resource):
     @jwt_required
     @schema_val_error
     def get(self, page: int):
+        yesterday = datetime.datetime.utcnow() - datetime.timedelta(hours=24)
+
         page = int(page)
         if page <= 0:
             raise InvalidPageError
@@ -139,13 +142,14 @@ class FeedApi(Resource):
         user = User.objects.get(id=uid)
         feed_list = []
 
-        if not refresh and JsonCache.exists(user.user_name, FEED):
-            feed_list = JsonCache.get_item(user.user_name, FEED)
+        if not refresh and JsonCache.exists(key=user.user_name, itemType=FEED, page=page):
+            feed_list = JsonCache.get_item(key=user.user_name, itemType=FEED, page=page)
         else:
             for f in user.following:
-                feed_list.extend(f.created_lists.rank_lists)
-            sort_list(feed_list, DATE_DESC)
+                follower_made = RankedList.objects(user_name=f.user_name, date_created__gte=yesterday)
+                feed_list.extend(follower_made)
+            feed_list = sort_list(feed_list, DATE_DESC)
             feed_list = ranked_list_card(feed_list)
-            JsonCache.cache_item(user.user_name, feed_list, FEED)
+            JsonCache.cache_item(key=user.user_name, item=feed_list, itemType=FEED, page=page)
         
-        return jsonify(slice_list(feed_list, page))
+        return feed_list, 200
