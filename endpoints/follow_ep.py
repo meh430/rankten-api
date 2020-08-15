@@ -41,13 +41,17 @@ class FollowingApi(Resource):
     @user_does_not_exist_error
     @schema_val_error
     def get(self, name: str):
+        refresh = False
+        if 're' in request.args:
+            refresh = bool(request.args['re'])
+
         # check if info exists in redis cache
-        if JsonCache.exists(name, FOLLOWING):
+        if not refresh and JsonCache.exists(name, FOLLOWING):
             return jsonify(JsonCache.get_item(name, FOLLOWING))
         else:
             following_json = get_compact_uinfo(
                 User.objects.get(user_name=name).following)
-            JsonCache.cache_item(name, following_json, FOLLOWING, ex=hours_in_sec(6))
+            JsonCache.cache_item(name, following_json, FOLLOWING, ex=hours_in_sec(12))
 
             return jsonify(following_json)
 
@@ -57,11 +61,15 @@ class FollowersApi(Resource):
     @user_does_not_exist_error
     @schema_val_error
     def get(self, name: str):
-        if JsonCache.exists(name, FOLLOWERS):
+        refresh = False
+        if 're' in request.args:
+            refresh = bool(request.args['re'])
+
+        if not refresh and JsonCache.exists(name, FOLLOWERS):
             return jsonify(JsonCache.get_item(name, FOLLOWERS))
         else:
             followers_json = get_compact_uinfo(
                 User.objects.get(user_name=name).followers)
-            JsonCache.cache_item(name, followers_json, FOLLOWERS, ex=hours_in_sec(6))
+            JsonCache.cache_item(name, followers_json, FOLLOWERS, ex=hours_in_sec(12))
 
             return jsonify(followers_json)

@@ -47,8 +47,12 @@ class LikeApi(Resource):
     @list_does_not_exist_error
     @schema_val_error
     def get(self, id):
+        refresh = False
+        if 're' in request.args:
+            refresh = bool(request.args['re'])
+        
         liked_users = []
-        if JsonCache.exists(id, LIKED_USERS):
+        if not refresh and JsonCache.exists(id, LIKED_USERS):
             liked_users = JsonCache.get_item(id, LIKED_USERS)
         else:
             liked_users = get_compact_uinfo(
@@ -92,12 +96,16 @@ class LikedListsApi(Resource):
     @user_does_not_exist_error
     @schema_val_error
     def get(self, page: int):
+        refresh = False
+        if 're' in request.args:
+            refresh = bool(request.args['re'])
+
         if page <= 0:
             raise InvalidPageError
         uid = get_jwt_identity()
         user = User.objects.get(id=uid)
         liked_lists = []
-        if JsonCache.exists(uid, LIKED_LISTS):
+        if not refresh and JsonCache.exists(uid, LIKED_LISTS):
             liked_lists = JsonCache.get_item(uid, LIKED_LISTS)
         else:
             liked_lists = user.created_lists.liked_lists

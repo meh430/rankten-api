@@ -1,7 +1,7 @@
 sort_options = {0: '-num_likes', 1: '-date_created', 2: '+date_created'}
 LIKES_DESC, DATE_DESC, DATE_ASC = 0, 1, 2
 
-def get_slice_bounds(page, num_items=50):
+def get_slice_bounds(page, num_items=25):
     upper = int(page) * num_items
     lower = upper - num_items
     return (lower, upper)

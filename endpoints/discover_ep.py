@@ -12,9 +12,13 @@ class DiscoverApi(Resource):
     @check_ps
     @schema_val_error
     def get(self, page: int, sort: int):
+        refresh = False
+        if 're' in request.args:
+            refresh = bool(request.args['re'])
+
         all_lists = []
 
-        if JsonCache.exists(str(page), DISCOVER_LIST, sort):
+        if not refresh and JsonCache.exists(str(page), DISCOVER_LIST, sort):
             all_lists = JsonCache.get_item(str(page), DISCOVER_LIST, sort)
         else:
             lower, upper = get_slice_bounds(page)
@@ -26,4 +30,4 @@ class DiscoverApi(Resource):
             all_lists = ranked_list_card(all_lists)
             JsonCache.cache_item(str(page), all_lists, DISCOVER_LIST, sort, hours_in_sec(0.5))
         
-        return jsonify(all_lists)
+        return all_lists, 200

@@ -18,8 +18,6 @@ def json_to_ref(json_list, list_ref, user):
 
 # /rankedlist/<id>
 # supports GET, PUT, DELETE
-
-
 class RankedListApi(Resource):
     # get specified list data
     @list_does_not_exist_error
@@ -28,6 +26,12 @@ class RankedListApi(Resource):
         return Response(RankedList.objects.get(id=id).to_json(), mimetype='application/json', status=200)
 
     # update specified list
+    """
+    schema:
+    {
+        "title": string
+    }
+    """
     @jwt_required
     @list_update_error
     @schema_val_error
@@ -36,7 +40,7 @@ class RankedListApi(Resource):
         body = request.get_json()
         user = User.objects.get(id=uid)
         RankedList.objects.get(id=id, created_by=user).update(**body)
-        JsonCache.delete(user.user_name, USER_LISTS)
+        JsonCache.sort_delete(user.user_name, USER_LISTS)
         return 'Updated ranked list', 200
 
     # delete specified list
@@ -49,15 +53,27 @@ class RankedListApi(Resource):
         ranked_list = RankedList.objects.get(id=id, created_by=user)
         ranked_list.delete()
         user.update(dec__list_num=1)
-        JsonCache.delete(user.user_name, USER_LISTS)
+        JsonCache.sort_delete(user.user_name, USER_LISTS)
         return 'Deleted ranked list', 200
 
 # /rankedlist
 # supports POST
-
-
 class RankedListsApi(Resource):
     # creates new list
+    """
+    schema:
+    {
+        "title": string,
+        "rank_list": [
+            {
+                "item_name": string,
+                "rank": int,
+                "description": optional string,
+                "picture": optional string
+            }
+        ]
+    }
+    """
     @jwt_required
     @schema_val_error
     def post(self):
@@ -81,35 +97,30 @@ class RankedListsApi(Resource):
 
         user.created_lists.update(push__rank_lists=new_list)
         user.update(inc__list_num=1)
-        JsonCache.delete(user.user_name, USER_LISTS)
-        followers = user.followers
-        for f in followers:
-            JsonCache.delete(f.user_name, FEED)
+        JsonCache.sort_delete(user.user_name, USER_LISTS)
         return {'_id': str(new_list.id)}, 200
 
 # /rankedlists/<name>/<page>/<sort>
 # supports GET
-
-
 class UserRankedListsApi(Resource):
     # returns lists created by a specific user
     @check_ps
     @user_does_not_exist_error
     @schema_val_error
     def get(self, name: str, page: int, sort: int):
+        refresh = False
+        if 're' in request.args:
+            refresh = bool(request.args['re'])
         user_lists = []
-        if JsonCache.exists(name, USER_LISTS):
-            user_lists = JsonCache.get_item(name, USER_LISTS)
+        if not refresh and JsonCache.exists(name, USER_LISTS, sort):
+            user_lists = JsonCache.get_item(name, USER_LISTS, sort)
         else:
-            user = User.objects.get(user_name=name)
-            user_lists = ranked_list_card(user.created_lists.rank_lists)
-            JsonCache.cache_item(name, user_lists, USER_LISTS)
-            
-        user_lists = sort_list(user_lists, sort)
+            user_lists = ranked_list_card(RankedList.objects(user_name=name).order_by(sort_options[sort]))
+            JsonCache.cache_item(name, user_lists, USER_LISTS, sort)
+
         return slice_list(user_lists, page), 200
 #/feed
 #supports GET
-#TODO: comb through code and fix sorting errors plus jsonify removal
 class FeedApi(Resource):
     #return user feed
     @jwt_required

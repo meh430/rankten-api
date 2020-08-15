@@ -112,15 +112,19 @@ class CommentsApi(Resource):
     @list_does_not_exist_error
     @schema_val_error
     def get(self, id, page: int, sort: int):
+        refresh = False
+        if 're' in request.args:
+            refresh = bool(request.args['re'])
+        
         rank_list_comments = []
-        if JsonCache.exists(id, LIST_COMMENTS, sort):
+        if not refresh and JsonCache.exists(id, LIST_COMMENTS, sort):
             rank_list_comments = JsonCache.get_item(id, LIST_COMMENTS, sort)
         else:
             rank_list_comments = RankedList.objects.get(id=id).comment_section.comments
             rank_list_comments = sort_list(rank_list_comments, sort)
             JsonCache.cache_item(id, rank_list_comments, LIST_COMMENTS, sort)
         
-        return jsonify(slice_list(rank_list_comments, page))
+        return slice_list(rank_list_comments, page), 200
 
 # /user_comments/<name>/<page>/<sort>
 # supports GET
@@ -130,12 +134,16 @@ class UserCommentsApi(Resource):
     @user_does_not_exist_error
     @schema_val_error
     def get(self, name: str, page: int, sort: int):
+        refresh = False
+        if 're' in request.args:
+            refresh = bool(request.args['re'])
+
         user_comments = []
-        if JsonCache.exists(name, USER_COMMENTS, sort):
+        if not refresh and JsonCache.exists(name, USER_COMMENTS, sort):
             user_comments = JsonCache.get_item(name, USER_COMMENTS, sort)
         else:
             user_comments = Comment.objects(
                 user_name=name).order_by(sort_options[sort])
             JsonCache.cache_item(name, user_comments, USER_COMMENTS, sort)
 
-        return jsonify(slice_list(user_comments, page))
+        return slice_list(user_comments, page), 200
