@@ -46,7 +46,7 @@ class LikeApi(Resource):
             key_dict(key=list_owner.user_name, itemType=USER_LISTS)
         )
 
-        return ('liked list' if exec_like else 'unliked list'), 200
+        return {'message': ('liked list' if exec_like else 'unliked list')}, 200
 
     # returns list of users that liked a list
     @list_does_not_exist_error
@@ -95,7 +95,7 @@ class LikeCommentApi(Resource):
             key_dict(key=comment_parent_id(id), itemType=LIST_COMMENTS),
             key_dict(key=comment.made_by.user_name, itemType=USER_COMMENTS)
         )
-        return ('liked comment' if exec_like else 'unliked comment'), 200
+        return {'message': ('liked comment' if exec_like else 'unliked comment')}, 200
 
 # /likes/<page>
 # supports GET

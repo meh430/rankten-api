@@ -4,6 +4,12 @@ from flask_jwt_extended import jwt_required, get_jwt_identity, create_access_tok
 from database.models import *
 from errors import *
 import datetime
+import re
+
+name_pattern = "^[a-z0-9_-]{3,15}$"
+#Minimum eight characters, at least one upper case English letter, 
+#one lower case English letter, one number and one special character
+pwd_pattern = "^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$ %^&*-]).{8,}$"
 
 # /signup
 # supports POST
@@ -21,15 +27,23 @@ class SignUpApi(Resource):
     @schema_val_error
     def post(self):
         body = request.get_json()
+        if not re.search(name_pattern, body['user_name']):
+            return {'message': 'Username not valid'}, 200
+
+        if not re.search(pwd_pattern, body['password']):
+            return {'message': 'Password not valid'}, 200
+
         user_lists = ListCollection()
         user_lists.save()
         user = User(**body, created_lists=user_lists)
         user.hash_pass()
         user.save()
         user_lists.update(belongs_to=user)
+        user_json = user.as_json()
         acc_token = create_access_token(identity=str(
-            user.id), expires_delta=datetime.timedelta(days=7)) 
-        return {'jwt_token': acc_token}, 200
+            user.id), expires_delta=datetime.timedelta(days=7))
+        user_json['jwt_token'] = acc_token 
+        return user_json, 200
 
 # /login
 # supports POST
@@ -51,9 +65,11 @@ class LoginApi(Resource):
         if not auth:
             raise UnauthorizedError
 
+        user_json = user.as_json()
         acc_token = create_access_token(identity=str(
             user.id), expires_delta=datetime.timedelta(days=7))
-        return {'jwt_token': acc_token}, 200
+        user_json['jwt_token'] = acc_token
+        return user_json, 200
 
 # /validate_token
 # supports POST
@@ -64,3 +80,15 @@ class TokenApi(Resource):
         uid = get_jwt_identity()
         user = User.objects.get(id=uid)
         return jsonify(user)
+
+#/user_avail/<name>
+#supports POST
+
+class UserAvailableApi(Resource):
+    #checks if given username is available
+    def post(self, name):
+        user = User.objects.get(user_name=name)
+        if user:
+            return {'message': 'Username is taken'}, 200
+        else:
+            return {'message': 'Username is available'}, 200

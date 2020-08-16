@@ -1,4 +1,5 @@
 from .db import db
+import simdjson as json
 from flask_bcrypt import generate_password_hash, check_password_hash
 import datetime
 
@@ -29,6 +30,10 @@ class User(db.Document):
 
     def check_password(self, password):
         return check_password_hash(self.password, password)
+
+    def as_json(self):
+        user_json = self.to_json()
+        return json.loads(user_json)
 
 
 class RankItem(db.Document):

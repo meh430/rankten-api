@@ -45,7 +45,7 @@ class RankItemApi(Resource):
         rank_item.save()
         rank_list.update(push__rank_list=rank_item)
         JsonCache.sort_delete(key=user.user_name, itemType=USER_LISTS)
-        return {'_id': str(rank_item.id)}, 200
+        return {'message': 'Created rank item', '_id': str(rank_item.id)}, 200
 
     # delete a rank item
     @jwt_required
@@ -58,7 +58,7 @@ class RankItemApi(Resource):
         rank_item = RankItem.objects.get(id=id, created_by=user)
         rank_item.delete()
         JsonCache.sort_delete(key=user.user_name, itemType=USER_LISTS)
-        return 'Deleted rank item', 200
+        return {'message': 'Deleted rank item'}, 200
 
     # update a rank item
     """
@@ -81,7 +81,7 @@ class RankItemApi(Resource):
         body = request.get_json()
         rank_item.update(**body)
         JsonCache.sort_delete(key=user.user_name, itemType=USER_LISTS)
-        return 'Updated rank item', 200
+        return {'message': 'Updated rank item'}, 200
 
 # /rankitems/<id>
 # supports PUT(list id)
@@ -112,4 +112,4 @@ class BulkUpdateApi(Resource):
         rank_list.update(push_all__rank_list=json_to_ref(
             body['rank_list'], rank_list, user))
         JsonCache.sort_delete(key=user.user_name, itemType=USER_LISTS)
-        return 'Added rank items', 200
+        return {'message': 'Added rank items'}, 200

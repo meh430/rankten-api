@@ -42,7 +42,7 @@ class RankedListApi(Resource):
         user = User.objects.get(id=uid)
         RankedList.objects.get(id=id, created_by=user).update(**body)
         JsonCache.sort_delete(key=user.user_name, itemType=USER_LISTS)
-        return 'Updated ranked list', 200
+        return {'message': 'Updated ranked list'}, 200
 
     # delete specified list
     @jwt_required
@@ -55,7 +55,7 @@ class RankedListApi(Resource):
         ranked_list.delete()
         user.update(dec__list_num=1)
         JsonCache.sort_delete(key=user.user_name, itemType=USER_LISTS)
-        return 'Deleted ranked list', 200
+        return {'message': 'Deleted ranked list'}, 200
 
 # /rankedlist
 # supports POST
@@ -99,7 +99,7 @@ class RankedListsApi(Resource):
         user.created_lists.update(push__rank_lists=new_list)
         user.update(inc__list_num=1)
         JsonCache.sort_delete(key=user.user_name, itemType=USER_LISTS)
-        return {'_id': str(new_list.id)}, 200
+        return {'message': 'Created ranked list', '_id': str(new_list.id)}, 200
 
 # /rankedlists/<name>/<page>/<sort>
 # supports GET

@@ -32,7 +32,7 @@ class FollowApi(Resource):
         JsonCache.delete(key=user.user_name, itemType=FOLLOWING)
         JsonCache.delete(key=target.user_name, itemType=FOLLOWERS)
 
-        return ('followed user' if exec_follow else 'unfollowed user'), 200
+        return {'message': ('followed user' if exec_follow else 'unfollowed user')}, 200
 
 # /following/<name>
 # supports GET

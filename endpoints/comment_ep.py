@@ -59,7 +59,7 @@ class CommentApi(Resource):
         #JsonCache.sort_delete(id, LIST_COMMENTS)
         #JsonCache.sort_delete(rank_list.user_name, USER_LISTS)
 
-        return {'_id': str(comment.id)}, 200
+        return {'message': 'Created comment', '_id': str(comment.id)}, 200
 
     """
     schema:
@@ -90,7 +90,7 @@ class CommentApi(Resource):
         #JsonCache.sort_delete(parent_id, LIST_COMMENTS)
         #JsonCache.sort_delete(RankedList.objects.get(id=parent_id).user_name, USER_LISTS)
 
-        return 'Updated comment', 200
+        return {'message': 'Updated comment'}, 200
 
     # delete a specified comment
     @jwt_required
@@ -116,7 +116,7 @@ class CommentApi(Resource):
         #JsonCache.sort_delete(str(rank_list.id), LIST_COMMENTS)
         #JsonCache.sort_delete(rank_list.user_name, USER_LISTS)
 
-        return 'Deleted comment', 200
+        return {'message': 'Deleted comment'}, 200
 
 # /comments/<id>/<page>/<sort>
 # supports GET(list id)
