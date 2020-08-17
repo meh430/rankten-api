@@ -4,6 +4,7 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from database.models import User
 from errors import *
 from database.json_cacher import *
+import simdjson as json
 
 # /users
 # supports PUT
@@ -56,4 +57,8 @@ class UserApi(Resource):
     @user_does_not_exist_error
     @schema_val_error
     def get(self, name: str):
-        return Response(User.objects(user_name=name).exclude('password').first().to_json(), mimetype='application/json', status=200)
+        user = User.objects(user_name=name).exclude('password').first()
+        user_json = json.loads(user.to_json())
+        user_json['num_following'] = len(user.following)
+        user_json['num_followers'] = len(user.followers)
+        return user_json, 200

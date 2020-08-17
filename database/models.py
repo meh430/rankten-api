@@ -14,7 +14,6 @@ class User(db.Document):
     prof_pic = db.StringField(default="")
     rank_points = db.IntField(default=0)
 
-    # get counts client side
     following = db.ListField(db.ReferenceField(
         'self', reverse_delete_rule=db.PULL), default=[])
     followers = db.ListField(db.ReferenceField(
