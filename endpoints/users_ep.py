@@ -1,7 +1,7 @@
 from flask import Response, request
 from flask_restful import Resource
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from database.models import User
+from database.models import User, Comment
 from errors import *
 from database.json_cacher import *
 import simdjson as json

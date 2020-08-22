@@ -142,14 +142,14 @@ class FeedApi(Resource):
         user = User.objects.get(id=uid)
         feed_list = []
 
-        if not refresh and JsonCache.exists(key=user.user_name, itemType=FEED, page=page):
-            feed_list = JsonCache.get_item(key=user.user_name, itemType=FEED, page=page)
+        if not refresh and JsonCache.exists(key=user.user_name, itemType=FEED):
+            feed_list = JsonCache.get_item(key=user.user_name, itemType=FEED)
         else:
             for f in user.following:
                 following_made = RankedList.objects(user_name=f.user_name, date_created__gte=yesterday)
                 feed_list.extend(following_made)
             feed_list = sort_list(feed_list, DATE_DESC)
             feed_list = ranked_list_card(feed_list)
-            JsonCache.cache_item(key=user.user_name, item=feed_list, itemType=FEED, page=page)
+            JsonCache.cache_item(key=user.user_name, item=feed_list, itemType=FEED)
         
         return feed_list, 200
