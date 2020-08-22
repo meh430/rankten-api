@@ -27,6 +27,7 @@ class SignUpApi(Resource):
     @schema_val_error
     def post(self):
         body = request.get_json()
+        print(body)
         if not re.search(name_pattern, body['user_name']):
             return {'message': 'Username not valid'}, 200
 
@@ -43,6 +44,8 @@ class SignUpApi(Resource):
         acc_token = create_access_token(identity=str(
             user.id), expires_delta=datetime.timedelta(days=7))
         user_json['jwt_token'] = acc_token 
+        user_json['num_following'] = len(user.following)
+        user_json['num_followers'] = len(user.followers)
         return user_json, 200
 
 # /login
@@ -69,6 +72,8 @@ class LoginApi(Resource):
         acc_token = create_access_token(identity=str(
             user.id), expires_delta=datetime.timedelta(days=7))
         user_json['jwt_token'] = acc_token
+        user_json['num_following'] = len(user.following)
+        user_json['num_followers'] = len(user.followers)
         return user_json, 200
 
 # /validate_token
@@ -79,7 +84,10 @@ class TokenApi(Resource):
     def post(self):
         uid = get_jwt_identity()
         user = User.objects.get(id=uid)
-        return jsonify(user)
+        user_json = user.as_json()
+        user_json['num_following'] = len(user.following)
+        user_json['num_followers'] = len(user.followers)
+        return user_json, 200
 
 #/user_avail/<name>
 #supports POST

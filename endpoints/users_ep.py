@@ -8,8 +8,6 @@ import simdjson as json
 
 # /users
 # supports PUT
-
-
 class UsersApi(Resource):
     # temp
     # get all users
@@ -39,7 +37,6 @@ class UsersApi(Resource):
         return 'Updated user', 200
 
     # deletes user
-
     @jwt_required
     @schema_val_error
     def delete(self):
@@ -49,8 +46,6 @@ class UsersApi(Resource):
         return 'Deleted user', 200
 # /users/<name>
 # supports GET
-
-
 class UserApi(Resource):
 
     # get specific user info

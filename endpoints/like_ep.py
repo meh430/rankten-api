@@ -108,12 +108,15 @@ class LikedListsApi(Resource):
         refresh = False
         if 're' in request.args:
             refresh = bool(request.args['re'])
+
         page = int(page)
         if page <= 0:
             raise InvalidPageError
         
         uid = get_jwt_identity()
         user = User.objects.get(id=uid)
+        if 'ids' in request.args and request.args['ids']:
+            return [str(r_list.id) for r_list in user.created_lists.liked_lists]
 
         liked_lists = []
         if not refresh and JsonCache.exists(key=uid, itemType=LIKED_LISTS, page=page):
