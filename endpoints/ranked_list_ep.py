@@ -40,6 +40,13 @@ class RankedListApi(Resource):
         uid = get_jwt_identity()
         body = request.get_json()
         user = User.objects.get(id=uid)
+        ranked_items = body.pop('ranked_list', None)
+        if ranked_items:
+            for ranked_item in ranked_items:
+                item_id = ranked_item.pop('_id')
+                RankedItem.objects.get(id=item_id).update(**rank_item)
+        
+
         RankedList.objects.get(id=id, created_by=user).update(**body)
         JsonCache.sort_delete(key=user.user_name, itemType=USER_LISTS)
         return {'message': 'Updated ranked list'}, 200
