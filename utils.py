@@ -26,7 +26,6 @@ def validate_bounds(list_len, page):
 
     upper = list_len if upper >= list_len else upper
     return (lower, upper)
-    
 
 
 def slice_list(documents, page):
@@ -68,16 +67,19 @@ def ranked_list_card(lists):
             if pic != "" and len(r_items_preview) >= 3:
                 break
 
-
+        
         list_comments = ranked_list.comment_section.comments
         has_comments = ranked_list.num_comments > 0
         if has_comments:
             r_card['comment_preview'] = {
                 'comment': list_comments[0].comment,
-                'user_name': list_comments[0].user_name
+                'prof_pic': list_comments[0].prof_pic,
+                'user_name': list_comments[0].user_name,
+                'date_created': int(list_comments[0].date_created.timestamp())
             }
         
         r_card['rank_list'] = r_items_preview
+        r_card['num_rank_items'] = len(ranked_list.rank_list)
         r_card['picture'] = pic
         ranked_list_cards.append(r_card)
     

@@ -6,6 +6,7 @@ from errors import *
 from utils import *
 from database.json_cacher import *
 import datetime
+import simdjson as json
 
 
 def json_to_ref(json_list, list_ref, user):
@@ -24,7 +25,11 @@ class RankedListApi(Resource):
     @list_does_not_exist_error
     @schema_val_error
     def get(self, id):
-        return Response(RankedList.objects.get(id=id).to_json(), mimetype='application/json', status=200)
+        list_json = RankedList.objects.get(id=id).as_json()
+        rank_items = sorted(RankedList.objects.get(id=id).rank_list, key=lambda k: k.rank)
+        rank_items = [json.loads(r.to_json()) for r in rank_items]
+        list_json['rank_list'] = rank_items
+        return list_json, 200
 
     # update specified list
     """
@@ -40,14 +45,19 @@ class RankedListApi(Resource):
         uid = get_jwt_identity()
         body = request.get_json()
         user = User.objects.get(id=uid)
-        ranked_items = body.pop('ranked_list', None)
+        ranked_list = RankedList.objects.get(id=id, created_by=user)
+        ranked_items = body.pop('rank_list', None)
         if ranked_items:
             for ranked_item in ranked_items:
-                item_id = ranked_item.pop('_id')
-                RankedItem.objects.get(id=item_id).update(**rank_item)
-        
-
-        RankedList.objects.get(id=id, created_by=user).update(**body)
+                item_id = ranked_item.pop('_id', None)
+                if item_id:
+                    RankedItem.objects.get(id=item_id).update(**rank_item)
+                else: 
+                    r_item = RankItem(**ranked_item, belongs_to=ranked_list, created_by=user)
+                    r_item.save()
+                    ranked_list.update(push__rank_list=r_item)
+        print(body)
+        ranked_list.update(**body)
         JsonCache.sort_delete(key=user.user_name, itemType=USER_LISTS)
         return {'message': 'Updated ranked list'}, 200
 

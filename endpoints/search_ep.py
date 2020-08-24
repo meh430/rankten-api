@@ -22,8 +22,6 @@ class SearchUsersApi(Resource):
 
 # /search_lists/<page>/<sort>
 # supports GET
-
-
 class SearchListsApi(Resource):
     # TODO: Query the contents of the list as well
     @check_ps

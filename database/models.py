@@ -62,6 +62,10 @@ class RankedList(db.Document):
     num_comments = db.IntField(default=0)
     comment_section = db.ReferenceField('CommentSection')
 
+    def as_json(self):
+        list_json = self.to_json()
+        return json.loads(list_json)
+
 
 RankedList.register_delete_rule(RankItem, 'belongs_to', db.CASCADE)
 
