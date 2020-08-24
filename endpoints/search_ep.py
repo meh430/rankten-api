@@ -30,11 +30,11 @@ class SearchListsApi(Resource):
         query = request.args.get('q')
         query = query.replace('+', ' ')
         lower, upper = get_slice_bounds(page)
-        list_len = RankedList.objects(title__icontains=query).count()
+        list_len = RankedList.objects(title__icontains=query, private=False).count()
         if lower >= list_len:
             raise InvalidPageError
         upper = list_len if upper >= list_len else upper
 
-        result = RankedList.objects(title__icontains=query).order_by(sort_options[sort])[lower:upper]
+        result = RankedList.objects(title__icontains=query, private=False).order_by(sort_options[sort])[lower:upper]
 
         return jsonify(ranked_list_card(result))
