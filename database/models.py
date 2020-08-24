@@ -51,6 +51,8 @@ class RankedList(db.Document):
     created_by = db.ReferenceField('User', reverse_delete_rule=db.CASCADE)
     user_name = db.StringField(required=True)
 
+    private = db.BooleanField(default=False)
+
     title = db.StringField(required=True)
     rank_list = db.ListField(db.ReferenceField(
         'RankItem', reverse_delete_rule=db.PULL), max_length=10)
