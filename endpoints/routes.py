@@ -20,6 +20,7 @@ def init_routes(api):
     api.add_resource(RankedListsApi, '/rankedlist')
     api.add_resource(RankedListApi, '/rankedlist/<id>')
     api.add_resource(UserRankedListsApi, '/rankedlists/<name>/<page>/<sort>')
+    api.add_resource(UserRankedListsPApi, '/rankedlistsp/<page>/<sort>')
 
     api.add_resource(RankItemApi, '/rankitem/<id>')
     api.add_resource(BulkUpdateApi, '/rankitems/<id>')

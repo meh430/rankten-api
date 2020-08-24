@@ -133,12 +133,40 @@ class UserRankedListsApi(Resource):
         if not refresh and JsonCache.exists(key=name, itemType=USER_LISTS, page=page, sort=sort):
             user_lists = JsonCache.get_item(key=name, itemType=USER_LISTS, page=page, sort=sort)
         else:
-            bounds = validate_bounds(RankedList.objects(user_name=name).count(), page)
+            bounds = validate_bounds(RankedList.objects(user_name=name, private=False).count(), page)
             if not bounds:
                 raise InvalidPageError
-            user_lists = ranked_list_card(RankedList.objects(user_name=name).order_by(sort_options[sort])[bounds[0]:bounds[1]])
+            user_lists = ranked_list_card(RankedList.objects(user_name=name, private=False).order_by(sort_options[sort])[bounds[0]:bounds[1]])
             JsonCache.cache_item(key=name, itemType=USER_LISTS, page=page, sort=sort, item=user_lists)
         return user_lists, 200
+
+# /rankedlistsp/<page>/<sort>
+# supports GET
+class UserRankedListsPApi(Resource):
+    # returns lists created by a specific user including private ones
+    @jwt_required
+    @check_ps
+    @user_does_not_exist_error
+    @schema_val_error
+    def get(self, page: int, sort: int):
+        refresh = False
+        if 're' in request.args:
+            refresh = bool(request.args['re'])
+
+        uid = get_jwt_identity()
+        user = User.objects.get(id=uid)
+
+        user_lists = []
+        if not refresh and JsonCache.exists(key=name, itemType=USER_LISTS, page=page, sort=sort):
+            user_lists = JsonCache.get_item(key=name, itemType=USER_LISTS, page=page, sort=sort)
+        else:
+            bounds = validate_bounds(RankedList.objects(user_name=user.user_name).count(), page)
+            if not bounds:
+                raise InvalidPageError
+            user_lists = ranked_list_card(RankedList.objects(user_name=user.user_name).order_by(sort_options[sort])[bounds[0]:bounds[1]])
+            JsonCache.cache_item(key=name, itemType=USER_LISTS, page=page, sort=sort, item=user_lists)
+        return user_lists, 200
+
 #/feed
 #supports GET
 class FeedApi(Resource):
