@@ -59,6 +59,7 @@ class RankedListApi(Resource):
         print(body)
         ranked_list.update(**body)
         JsonCache.sort_delete(key=user.user_name, itemType=USER_LISTS)
+        JsonCache.sort_delete(key=user.user_name, itemType=USER_LISTSP)
         return {'message': 'Updated ranked list'}, 200
 
     # delete specified list
@@ -72,6 +73,7 @@ class RankedListApi(Resource):
         ranked_list.delete()
         user.update(dec__list_num=1)
         JsonCache.sort_delete(key=user.user_name, itemType=USER_LISTS)
+        JsonCache.sort_delete(key=user.user_name, itemType=USER_LISTSP)
         return {'message': 'Deleted ranked list'}, 200
 
 # /rankedlist
@@ -116,6 +118,7 @@ class RankedListsApi(Resource):
         user.created_lists.update(push__rank_lists=new_list)
         user.update(inc__list_num=1)
         JsonCache.sort_delete(key=user.user_name, itemType=USER_LISTS)
+        JsonCache.sort_delete(key=user.user_name, itemType=USER_LISTSP)
         return {'message': 'Created ranked list', '_id': str(new_list.id)}, 200
 
 # /rankedlists/<name>/<page>/<sort>
@@ -129,6 +132,8 @@ class UserRankedListsApi(Resource):
         refresh = False
         if 're' in request.args:
             refresh = bool(request.args['re'])
+            print(refresh)
+
         user_lists = []
         if not refresh and JsonCache.exists(key=name, itemType=USER_LISTS, page=page, sort=sort):
             user_lists = JsonCache.get_item(key=name, itemType=USER_LISTS, page=page, sort=sort)
@@ -137,7 +142,7 @@ class UserRankedListsApi(Resource):
             if not bounds:
                 raise InvalidPageError
             user_lists = ranked_list_card(RankedList.objects(user_name=name, private=False).order_by(sort_options[sort])[bounds[0]:bounds[1]])
-            JsonCache.cache_item(key=name, itemType=USER_LISTS, page=page, sort=sort, item=user_lists)
+            JsonCache.cache_item(key=name, itemType=USER_LISTS, page=page, sort=sort, item=user_lists, ex=hours_in_sec(0.5))
         return user_lists, 200
 
 # /rankedlistsp/<page>/<sort>
@@ -157,14 +162,14 @@ class UserRankedListsPApi(Resource):
         user = User.objects.get(id=uid)
 
         user_lists = []
-        if not refresh and JsonCache.exists(key=name, itemType=USER_LISTS, page=page, sort=sort):
-            user_lists = JsonCache.get_item(key=name, itemType=USER_LISTS, page=page, sort=sort)
+        if not refresh and JsonCache.exists(key=user.user_name, itemType=USER_LISTSP, page=page, sort=sort):
+            user_lists = JsonCache.get_item(key=user.user_name, itemType=USER_LISTSP, page=page, sort=sort)
         else:
             bounds = validate_bounds(RankedList.objects(user_name=user.user_name).count(), page)
             if not bounds:
                 raise InvalidPageError
             user_lists = ranked_list_card(RankedList.objects(user_name=user.user_name).order_by(sort_options[sort])[bounds[0]:bounds[1]])
-            JsonCache.cache_item(key=name, itemType=USER_LISTS, page=page, sort=sort, item=user_lists)
+            JsonCache.cache_item(key=user.user_name, itemType=USER_LISTSP, page=page, sort=sort, item=user_lists, ex=hours_in_sec(0.5))
         return user_lists, 200
 
 #/feed

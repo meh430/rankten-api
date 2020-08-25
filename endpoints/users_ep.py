@@ -56,4 +56,5 @@ class UserApi(Resource):
         user_json = json.loads(user.to_json())
         user_json['num_following'] = len(user.following)
         user_json['num_followers'] = len(user.followers)
+        user_json['num_liked'] = len(user.created_lists.liked_lists)
         return user_json, 200

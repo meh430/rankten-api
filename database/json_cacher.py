@@ -15,11 +15,12 @@ FEED = 'feed'#expire 2 hours
 #cache sort for pagination
 #mongo index + TYPE + page + sort
 USER_LISTS = 'user_lists'#expire 0.5 hour
+USER_LISTSP = 'user_listsp'#expire 0.5 hour
 LIST_COMMENTS = 'list_comments'#expire 2 hours
 USER_COMMENTS = 'user_comments'#expire 2 hours
 DISCOVER_LIST = 'discover_list'#expires 2 hour
 
-paginated = [LIKED_LISTS, USER_LISTS, LIST_COMMENTS, USER_COMMENTS, DISCOVER_LIST, FEED]
+paginated = [LIKED_LISTS, USER_LISTS, USER_LISTSP,LIST_COMMENTS, USER_COMMENTS, DISCOVER_LIST, FEED]
 
 hours_in_sec = lambda hours: int(hours * 60 * 60)
 

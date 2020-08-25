@@ -11,6 +11,10 @@ class SearchUsersApi(Resource):
     @schema_val_error
     def get(self, page: int, sort: int):
         query = request.args.get('q')
+        if not query or " " in query:
+            return [], 200
+
+
         lower, upper = get_slice_bounds(page, 50)
         list_len = User.objects(user_name__icontains=query).only('user_name', 'rank_points', 'prof_pic').count()
         if lower >= list_len:
@@ -29,8 +33,16 @@ class SearchListsApi(Resource):
     def get(self, page: int, sort: int):
         query = request.args.get('q')
         query = query.replace('+', ' ')
+
+        if not query:
+            return [], 200
+
         lower, upper = get_slice_bounds(page)
+        print(get_slice_bounds(page))
         list_len = RankedList.objects(title__icontains=query, private=False).count()
+        if list_len == 0:
+            return [], 200
+
         if lower >= list_len:
             raise InvalidPageError
         upper = list_len if upper >= list_len else upper

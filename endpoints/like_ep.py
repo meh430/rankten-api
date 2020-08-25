@@ -43,7 +43,8 @@ class LikeApi(Resource):
         JsonCache.bulk_delete(
             key_dict(key=id, itemType=LIKED_USERS),
             key_dict(key=uid, itemType=LIKED_LISTS),
-            key_dict(key=list_owner.user_name, itemType=USER_LISTS)
+            key_dict(key=list_owner.user_name, itemType=USER_LISTS),
+            key_dict(key=list_owner.user_name, itemType=USER_LISTSP)
         )
 
         return {'message': ('liked list' if exec_like else 'unliked list')}, 200
@@ -104,12 +105,13 @@ class LikedListsApi(Resource):
     @jwt_required
     @user_does_not_exist_error
     @schema_val_error
-    def get(self, page: int):
+    def get(self, page: int, sort: int):
         refresh = False
         if 're' in request.args:
             refresh = bool(request.args['re'])
 
         page = int(page)
+        sort = int(sort)
         if page <= 0:
             raise InvalidPageError
         
@@ -119,8 +121,8 @@ class LikedListsApi(Resource):
             return [str(r_list.id) for r_list in user.created_lists.liked_lists]
 
         liked_lists = []
-        if not refresh and JsonCache.exists(key=uid, itemType=LIKED_LISTS, page=page):
-            liked_lists = JsonCache.get_item(key=uid, itemType=LIKED_LISTS, page=page)
+        if not refresh and JsonCache.exists(key=uid, itemType=LIKED_LISTS, page=page, sort=sort):
+            liked_lists = JsonCache.get_item(key=uid, itemType=LIKED_LISTS, page=page, sort=sort)
         else:
             liked_lists = user.created_lists.liked_lists
             bounds = validate_bounds(len(liked_lists), page)
@@ -128,6 +130,7 @@ class LikedListsApi(Resource):
                 raise InvalidPageError
             
             liked_lists = ranked_list_card(liked_lists[bounds[0]:bounds[1]])
-            JsonCache.cache_item(key=uid, item=liked_lists, itemType=LIKED_LISTS, page=page)
+            liked_lists = sort_list(liked_lists, sort)
+            JsonCache.cache_item(key=uid, item=liked_lists, itemType=LIKED_LISTS, page=page, sort=sort)
 
         return liked_lists, 200

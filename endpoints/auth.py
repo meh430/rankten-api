@@ -46,6 +46,7 @@ class SignUpApi(Resource):
         user_json['jwt_token'] = acc_token 
         user_json['num_following'] = len(user.following)
         user_json['num_followers'] = len(user.followers)
+        user_json['num_liked'] = len(user.created_lists.liked_lists)
         return user_json, 200
 
 # /login
@@ -74,6 +75,7 @@ class LoginApi(Resource):
         user_json['jwt_token'] = acc_token
         user_json['num_following'] = len(user.following)
         user_json['num_followers'] = len(user.followers)
+        user_json['num_liked'] = len(user.created_lists.liked_lists)
         return user_json, 200
 
 # /validate_token
@@ -87,6 +89,7 @@ class TokenApi(Resource):
         user_json = user.as_json()
         user_json['num_following'] = len(user.following)
         user_json['num_followers'] = len(user.followers)
+        user_json['num_liked'] = len(user.created_lists.liked_lists)
         return user_json, 200
 
 #/user_avail/<name>

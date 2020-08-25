@@ -53,7 +53,8 @@ class CommentApi(Resource):
         JsonCache.bulk_delete(
             key_dict(key=user.user_name, itemType=USER_COMMENTS), 
             key_dict(key=id, itemType=LIST_COMMENTS), 
-            key_dict(key=rank_list.user_name, itemType=USER_LISTS)
+            key_dict(key=rank_list.user_name, itemType=USER_LISTS),
+            key_dict(key=rank_list.user_name, itemType=USER_LISTSP)
         )
         #JsonCache.sort_delete(user.user_name, USER_COMMENTS)
         #JsonCache.sort_delete(id, LIST_COMMENTS)
@@ -81,10 +82,12 @@ class CommentApi(Resource):
         #comment updated so some of the cache is invalid
         #delete all comments made by user, all comments on current list, all of the list owner's lists
         parent_id = comment_parent_id(id)
+        owner_name = RankedList.objects.get(id=parent_id).user_name
         JsonCache.bulk_delete(
             key_dict(key=user.user_name, itemType=USER_COMMENTS),
             key_dict(key=parent_id, itemType=LIST_COMMENTS),
-            key_dict(key=RankedList.objects.get(id=parent_id).user_name, itemType=USER_LISTS)
+            key_dict(key=owner_name, itemType=USER_LISTS),
+            key_dict(key=owner_name, itemType=USER_LISTSP)
         )
         #JsonCache.sort_delete(user.user_name, USER_COMMENTS)
         #JsonCache.sort_delete(parent_id, LIST_COMMENTS)
@@ -110,7 +113,8 @@ class CommentApi(Resource):
         JsonCache.bulk_delete(
             key_dict(key=user.user_name, itemType=USER_COMMENTS),
             key_dict(key=str(rank_list.id), itemType=LIST_COMMENTS),
-            key_dict(key=rank_list.user_name, itemType=USER_LISTS)
+            key_dict(key=rank_list.user_name, itemType=USER_LISTS),
+            key_dict(key=rank_list.user_name, itemType=USER_LISTSP)
         )
         #JsonCache.sort_delete(user.user_name, USER_COMMENTS)
         #JsonCache.sort_delete(str(rank_list.id), LIST_COMMENTS)
@@ -140,10 +144,11 @@ class CommentsApi(Resource):
         
         return jsonify(slice_list(rank_list_comments, page))
 
-# /user_comments/<name>/<page>/<sort>
+# /user_comments/<page>/<sort>
 # supports GET
 class UserCommentsApi(Resource):
     # returns all the comments made by a user
+    @jwt_required
     @check_ps
     @user_does_not_exist_error
     @schema_val_error
@@ -151,6 +156,10 @@ class UserCommentsApi(Resource):
         refresh = False
         if 're' in request.args:
             refresh = bool(request.args['re'])
+        
+        uid = get_jwt_identity()
+        user = User.objects.get(id=uid)
+        name = user.user_name
 
         user_comments = []
         if not refresh and JsonCache.exists(key=name, itemType=USER_COMMENTS, page=page, sort=sort):

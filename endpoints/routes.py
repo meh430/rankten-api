@@ -33,7 +33,7 @@ def init_routes(api):
 
     api.add_resource(LikeApi, '/like/<id>')
     api.add_resource(LikeCommentApi, '/like_comment/<id>')
-    api.add_resource(LikedListsApi, '/likes/<page>')
+    api.add_resource(LikedListsApi, '/likes/<page>/<sort>')
 
     api.add_resource(CommentApi, '/comment/<id>')
     api.add_resource(CommentsApi, '/comments/<id>/<page>/<sort>')
