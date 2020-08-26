@@ -6,10 +6,13 @@ def get_slice_bounds(page, num_items=10):
     lower = upper - num_items
     return (lower, upper)
 
-def sort_list(documents, sort):
+def sort_list(documents, sort, user=False):
     if sort == LIKES_DESC:
-        documents = sorted(documents, key=lambda k: k['num_likes'] if isinstance(
-            k, dict) else k.num_likes, reverse=True)
+        if user:
+            documents = sorted(documents, key=lambda k: k['rank_points'], reverse=True)
+        else:
+            documents = sorted(documents, key=lambda k: k['num_likes'] if isinstance(
+                k, dict) else k.num_likes, reverse=True)
     elif sort == DATE_DESC:
         documents = sorted(
             documents, key=lambda k: k['date_created']['$date'] if isinstance(k, dict) else k.date_created, reverse=True)
@@ -19,8 +22,8 @@ def sort_list(documents, sort):
 
     return documents
 
-def validate_bounds(list_len, page):
-    lower, upper = get_slice_bounds(page)
+def validate_bounds(list_len, page, num_items=10):
+    lower, upper = get_slice_bounds(page, num_items)
     if lower >= list_len:
         return tuple(())
 
@@ -28,15 +31,15 @@ def validate_bounds(list_len, page):
     return (lower, upper)
 
 
-def slice_list(documents, page):
-    bounds = validate_bounds(len(documents), page)
+def slice_list(documents, page, num_items=10):
+    bounds = validate_bounds(len(documents), page, num_items)
     if len(bounds) == 0:
         return ['Trying to access a page that does not exist']
  
     return documents[bounds[0]:bounds[1]]
 
 def get_compact_uinfo(user_list):
-    return [{'user_name': f.user_name, 'prof_pic': f.prof_pic, 'bio': f.bio if len(f.bio) <= 50 else (f.bio[:47]+'...')} for f in user_list]
+    return [{'user_name': f.user_name, 'prof_pic': f.prof_pic, 'bio': f.bio if len(f.bio) <= 50 else (f.bio[:47]+'...'), 'rank_points': f.rank_points} for f in user_list]
 
 #custom schema for list card elements
 def ranked_list_card(lists):

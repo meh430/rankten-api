@@ -24,6 +24,13 @@ class User(db.Document):
     list_num = db.IntField(default=0)
     created_lists = db.ReferenceField('ListCollection')
 
+    meta = {
+        'indexes': [
+        {'fields': ["$bio"],
+         'default_language': 'english',
+        }
+    ]}
+
     def hash_pass(self):
         self.password = generate_password_hash(self.password).decode('utf8')
 
@@ -39,10 +46,22 @@ class RankItem(db.Document):
     created_by = db.ReferenceField('User', reverse_delete_rule=db.CASCADE)
     belongs_to = db.ReferenceField('RankedList')
 
+    private = db.BooleanField(default=False)
+
+    parent_title = db.StringField(default="")
     item_name = db.StringField(required=True)
     rank = db.IntField(required=True, min_value=1, max_value=10)
     description = db.StringField(default="")
     picture = db.StringField(default="")
+
+    meta = {
+        'indexes': [
+        {
+            'fields': ["$item_name", "$description", "$parent_title"],
+            'default_language': 'english',
+            'weights': {'description': 4, 'item_name': 8, 'parent_title': 10}
+        }
+    ]}
 
 
 class RankedList(db.Document):

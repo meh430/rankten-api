@@ -1,7 +1,7 @@
 from flask import Response, request
 from flask_restful import Resource
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from database.models import User, Comment
+from database.models import User, Comment, RankItem
 from errors import *
 from database.json_cacher import *
 import simdjson as json
@@ -13,6 +13,10 @@ class UsersApi(Resource):
     # get all users
     @schema_val_error
     def get(self):
+        r_items = RankItem.objects()
+        for r in r_items:
+            r.update(set__parent_title=r.belongs_to.title)
+        
         return Response(User.objects().to_json(), mimetype='application/json', status=200)
 
     # update user info
