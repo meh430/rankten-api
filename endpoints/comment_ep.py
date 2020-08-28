@@ -6,6 +6,8 @@ from database.json_cacher import *
 from errors import *
 from utils import *
 
+import simdjson as json
+
 @list_does_not_exist_error
 @schema_val_error
 def comment_parent_id(id):
@@ -60,7 +62,7 @@ class CommentApi(Resource):
         #JsonCache.sort_delete(id, LIST_COMMENTS)
         #JsonCache.sort_delete(rank_list.user_name, USER_LISTS)
 
-        return {'message': 'Created comment', '_id': str(comment.id)}, 200
+        return json.loads(comment.to_json()), 200
 
     """
     schema:
@@ -93,7 +95,7 @@ class CommentApi(Resource):
         #JsonCache.sort_delete(parent_id, LIST_COMMENTS)
         #JsonCache.sort_delete(RankedList.objects.get(id=parent_id).user_name, USER_LISTS)
 
-        return {'message': 'Updated comment'}, 200
+        return json.loads(Comment.objects.get(id=id, made_by=uid).to_json()), 200
 
     # delete a specified comment
     @jwt_required
