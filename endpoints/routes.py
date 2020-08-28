@@ -37,7 +37,7 @@ def init_routes(api):
 
     api.add_resource(CommentApi, '/comment/<id>')
     api.add_resource(CommentsApi, '/comments/<id>/<page>/<sort>')
-    api.add_resource(UserCommentsApi, '/user_comments/<name>/<page>/<sort>')
+    api.add_resource(UserCommentsApi, '/user_comments/<page>/<sort>')
 
     api.add_resource(SearchUsersApi, '/search_users/<page>/<sort>')
     api.add_resource(SearchListsApi, '/search_lists/<page>/<sort>')

@@ -39,7 +39,7 @@ def slice_list(documents, page, num_items=10):
     return documents[bounds[0]:bounds[1]]
 
 def get_compact_uinfo(user_list):
-    return [{'user_name': f.user_name, 'prof_pic': f.prof_pic, 'bio': f.bio if len(f.bio) <= 50 else (f.bio[:47]+'...'), 'rank_points': f.rank_points} for f in user_list]
+    return [{'user_name': f.user_name, 'prof_pic': f.prof_pic, 'bio': f.bio if len(f.bio) <= 200 else (f.bio[:196]+'...'), 'rank_points': f.rank_points} for f in user_list]
 
 #custom schema for list card elements
 def ranked_list_card(lists):

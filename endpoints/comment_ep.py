@@ -152,7 +152,7 @@ class UserCommentsApi(Resource):
     @check_ps
     @user_does_not_exist_error
     @schema_val_error
-    def get(self, name: str, page: int, sort: int):
+    def get(self, page: int, sort: int):
         refresh = False
         if 're' in request.args:
             refresh = bool(request.args['re'])

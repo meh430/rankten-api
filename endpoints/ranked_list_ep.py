@@ -48,6 +48,13 @@ class RankedListApi(Resource):
         ranked_list = RankedList.objects.get(id=id, created_by=user)
         ranked_items = body.pop('rank_list', None)
         if ranked_items:
+            #delete item if not in incoming list
+            present_item_ids = [str(r.id) for r in ranked_list.rank_list]
+            given_item_ids = [str(r.id) for r in ranked_items]
+            for id in present_item_ids:
+                if id not in given_item_ids:
+                    RankItem.objects.get(id=id).delete()
+
             for ranked_item in ranked_items:
                 item_id = ranked_item.pop('_id', None)
                 if item_id:
