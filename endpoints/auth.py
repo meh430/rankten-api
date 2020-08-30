@@ -64,6 +64,7 @@ class LoginApi(Resource):
     @schema_val_error
     def post(self):
         body = request.get_json()
+        print(body)
         user = User.objects.get(user_name=body['user_name'])
         auth = user.check_password(body['password'])
         if not auth:
