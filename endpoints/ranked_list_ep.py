@@ -50,7 +50,7 @@ class RankedListApi(Resource):
         if ranked_items:
             #delete item if not in incoming list
             present_item_ids = [str(r.id) for r in ranked_list.rank_list]
-            given_item_ids = [str(r.id) for r in ranked_items]
+            given_item_ids = [str(r['_id']) for r in ranked_items]
             for id in present_item_ids:
                 if id not in given_item_ids:
                     RankItem.objects.get(id=id).delete()
@@ -58,7 +58,7 @@ class RankedListApi(Resource):
             for ranked_item in ranked_items:
                 item_id = ranked_item.pop('_id', None)
                 if item_id:
-                    RankedItem.objects.get(id=item_id).update(**rank_item)
+                    RankItem.objects.get(id=item_id).update(**ranked_item)
                 else: 
                     r_item = RankItem(**ranked_item, belongs_to=ranked_list, created_by=user)
                     r_item.save()
@@ -210,3 +210,14 @@ class FeedApi(Resource):
             JsonCache.cache_item(key=user.user_name, item=feed_list, itemType=FEED)
         
         return feed_list, 200
+
+class PrivateListApi(Resource):
+
+    @jwt_required
+    @list_does_not_exist_error
+    def get(self, id):
+        uid = get_jwt_identity()
+        user = User.objects.get(id=uid)
+        ranked_list = RankedList.objects.get(id=id, created_by=user)
+
+        return ranked_list.private, 200

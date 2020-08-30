@@ -43,10 +43,11 @@ class SearchListsApi(Resource):
 
         if not query:
             return [], 200
-
+        print(request.args)
         refresh = False
         if 're' in request.args:
             refresh = bool(request.args['re'])
+            refresh = True
 
         result = []
         if not refresh and JsonCache.exists(key=query, itemType=SEARCH_LISTS, sort=sort):

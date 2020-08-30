@@ -43,3 +43,5 @@ def init_routes(api):
     api.add_resource(SearchListsApi, '/search_lists/<page>/<sort>')
 
     api.add_resource(FeedApi, '/feed/<page>')
+
+    api.add_resource(PrivateListApi, '/is_private/<id>')
