@@ -50,7 +50,7 @@ class RankedListApi(Resource):
         if ranked_items:
             #delete item if not in incoming list
             present_item_ids = [str(r.id) for r in ranked_list.rank_list]
-            given_item_ids = [str(r['_id']) for r in ranked_items]
+            given_item_ids = [str(r['_id'] if '_id' in r else '2468') for r in ranked_items]
             for id in present_item_ids:
                 if id not in given_item_ids:
                     RankItem.objects.get(id=id).delete()
@@ -63,8 +63,10 @@ class RankedListApi(Resource):
                     r_item = RankItem(**ranked_item, belongs_to=ranked_list, created_by=user)
                     r_item.save()
                     ranked_list.update(push__rank_list=r_item)
-        print(body)
+        
+        ranked_list.update(rank_list=sorted(ranked_list.rank_list, key=lambda k: k.rank))
         ranked_list.update(**body)
+
         JsonCache.sort_delete(key=user.user_name, itemType=USER_LISTS)
         JsonCache.sort_delete(key=user.user_name, itemType=USER_LISTSP)
         return {'message': 'Updated ranked list'}, 200

@@ -1,4 +1,5 @@
 import simdjson as json
+import datetime
 
 sort_options = {0: '-num_likes', 1: '-date_created', 2: '+date_created'}
 LIKES_DESC, DATE_DESC, DATE_ASC = 0, 1, 2
@@ -54,7 +55,7 @@ def ranked_list_card(lists):
             'user_name': ranked_list.user_name, 
             'prof_pic': ranked_list.created_by.prof_pic, 
             'title': ranked_list.title, 
-            'date_created': {'$date': int(ranked_list.date_created.timestamp() * 1000)}, 
+            'date_created': {'$date': int((ranked_list.date_created - datetime.datetime(1970, 1, 1)) / datetime.timedelta(seconds=1) * 1000)}, 
             'num_likes': ranked_list.num_likes, 
             'num_comments': ranked_list.num_comments}
         r_items_preview = []
@@ -80,7 +81,7 @@ def ranked_list_card(lists):
                 'comment': list_comments[0].comment,
                 'prof_pic': list_comments[0].prof_pic,
                 'user_name': list_comments[0].user_name,
-                'date_created': int(list_comments[0].date_created.timestamp() * 1000)
+                'date_created': int((list_comments[0].date_created - datetime.datetime(1970, 1, 1)) / datetime.timedelta(seconds=1) * 1000)
             }
         
         r_card['rank_list'] = r_items_preview
