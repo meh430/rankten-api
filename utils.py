@@ -49,13 +49,12 @@ def ranked_list_card(lists):
         return lists
     ranked_list_cards = []
     for ranked_list in lists:
-        r_dict=json.loads(ranked_list.to_json())
         r_card = {
             '_id': str(ranked_list.id),
             'user_name': ranked_list.user_name, 
             'prof_pic': ranked_list.created_by.prof_pic, 
             'title': ranked_list.title, 
-            'date_created': r_dict['date_created'], 
+            'date_created': {'$date': int(ranked_list.date_created.timestamp() * 1000)}, 
             'num_likes': ranked_list.num_likes, 
             'num_comments': ranked_list.num_comments}
         r_items_preview = []
@@ -77,12 +76,11 @@ def ranked_list_card(lists):
         list_comments = ranked_list.comment_section.comments
         has_comments = ranked_list.num_comments > 0
         if has_comments:
-            comm_dict = json.loads(list_comments[0].to_json())
             r_card['comment_preview'] = {
                 'comment': list_comments[0].comment,
                 'prof_pic': list_comments[0].prof_pic,
                 'user_name': list_comments[0].user_name,
-                'date_created': comm_dict['date_created']['$date']
+                'date_created': int(list_comments[0].date_created.timestamp() * 1000)
             }
         
         r_card['rank_list'] = r_items_preview
