@@ -60,8 +60,8 @@ def ranked_list_card(lists):
             'num_comments': ranked_list.num_comments}
         r_items_preview = []
         pic = ""
-        
-        for r_item in ranked_list.rank_list:
+        sorted_rank_list = sorted(ranked_list.rank_list, key=lambda k: k.rank)
+        for r_item in sorted_rank_list:
             if pic == "" and r_item.picture != "":
                 pic = r_item.picture
             if len(r_items_preview) < 3:

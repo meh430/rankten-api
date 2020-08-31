@@ -25,7 +25,7 @@ paginated = [LIKED_LISTS, USER_LISTS, USER_LISTSP,LIST_COMMENTS, USER_COMMENTS, 
 
 hours_in_sec = lambda hours: int(hours * 60 * 60)
 
-EXPIRE = hours_in_sec(2)
+EXPIRE = hours_in_sec(1)
 
 serializer = json_util.default
 

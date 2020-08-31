@@ -62,10 +62,8 @@ class RankedListApi(Resource):
                 else: 
                     r_item = RankItem(**ranked_item, belongs_to=ranked_list, created_by=user)
                     r_item.save()
-                    ranked_list.rank_list.append(r_item)
-        
-        ranked_list.rank_list = sorted(ranked_list.rank_list, key=lambda k: k.rank)
-        ranked_list.save()
+                    ranked_list.update(push__rank_list=r_item)
+
         ranked_list.update(**body)
 
         JsonCache.sort_delete(key=user.user_name, itemType=USER_LISTS)
