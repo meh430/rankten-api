@@ -6,7 +6,7 @@ from errors import *
 from utils import *
 from database.json_cacher import *
 import datetime
-import simdjson as json
+import ujson as json
 
 
 def json_to_ref(json_list, list_ref, user):

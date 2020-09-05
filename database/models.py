@@ -1,5 +1,5 @@
 from .db import db
-import simdjson as json
+import ujson as json
 from flask_bcrypt import generate_password_hash, check_password_hash
 import datetime
 

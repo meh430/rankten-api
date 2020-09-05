@@ -1,5 +1,6 @@
 from flask_mongoengine import MongoEngine
 import redis
+import os
 
 db = MongoEngine()
 cache = redis.Redis()

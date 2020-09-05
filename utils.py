@@ -1,4 +1,4 @@
-import simdjson as json
+import ujson as json
 import datetime
 
 sort_options = {0: '-num_likes', 1: '-date_created', 2: '+date_created'}

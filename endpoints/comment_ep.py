@@ -6,7 +6,7 @@ from database.json_cacher import *
 from errors import *
 from utils import *
 
-import simdjson as json
+import ujson as json
 
 @list_does_not_exist_error
 @schema_val_error

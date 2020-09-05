@@ -14,6 +14,7 @@ flask-jwt-extended = "*"
 requests = "*"
 redis = "*"
 flask-cors = "*"
+ujson = "*"
 
 [requires]
 python_version = "3.8"

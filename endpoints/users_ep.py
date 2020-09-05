@@ -4,7 +4,7 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from database.models import User, Comment, RankItem
 from errors import *
 from database.json_cacher import *
-import simdjson as json
+import ujson as json
 
 # /users
 # supports PUT
@@ -13,10 +13,6 @@ class UsersApi(Resource):
     # get all users
     @schema_val_error
     def get(self):
-        r_items = RankItem.objects()
-        for r in r_items:
-            r.update(set__parent_title=r.belongs_to.title)
-        
         return Response(User.objects().to_json(), mimetype='application/json', status=200)
 
     # update user info
@@ -56,9 +52,11 @@ class UserApi(Resource):
     @user_does_not_exist_error
     @schema_val_error
     def get(self, name: str):
+        user_json = {}
         user = User.objects(user_name=name).exclude('password').first()
         user_json = json.loads(user.to_json())
         user_json['num_following'] = len(user.following)
         user_json['num_followers'] = len(user.followers)
         user_json['num_liked'] = len(user.created_lists.liked_lists)
+        user_json['liked_lists'] = user.created_lists.liked_lists
         return user_json, 200

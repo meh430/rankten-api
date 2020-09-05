@@ -1,6 +1,6 @@
 from database.db import cache
 from bson import json_util
-import simdjson as json
+import ujson as json
 #refresh to get uncached
 
 #mongo index + TYPE
