@@ -156,6 +156,7 @@ class UserRankedListsApi(Resource):
 # /rankedlistsp/<page>/<sort>
 # supports GET
 class UserRankedListsPApi(Resource):
+
     # returns lists created by a specific user including private ones
     @jwt_required
     @check_ps
@@ -178,6 +179,7 @@ class UserRankedListsPApi(Resource):
                 raise InvalidPageError
             user_lists = ranked_list_card(RankedList.objects(user_name=user.user_name).order_by(sort_options[sort])[bounds[0]:bounds[1]])
             JsonCache.cache_item(key=user.user_name, itemType=USER_LISTSP, page=page, sort=sort, item=user_lists, ex=hours_in_sec(0.5))
+
         return user_lists, 200
 
 #/feed

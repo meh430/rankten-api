@@ -37,9 +37,9 @@ class JsonCache:
         page = str(page)
         print("CACHING REQUEST: " + key + itemType + page + sort)
         if itemType == LIST_COMMENTS or itemType == USER_COMMENTS:
-            cache.set(key + itemType + page + sort, json.dumps([comm.to_json() for comm in item], default=serializer), ex=ex)
+            cache.set(key + itemType + page + sort, json.dumps([comm.to_json() for comm in item]), ex=ex)
         else:
-            cache.set(key + itemType + page + sort, json.dumps(item, default=serializer), ex=ex)
+            cache.set(key + itemType + page + sort, json.dumps(item), ex=ex)
 
     @staticmethod
     def get_item(key="", itemType="", page="", sort=""):

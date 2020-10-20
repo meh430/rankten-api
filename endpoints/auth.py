@@ -47,7 +47,7 @@ class SignUpApi(Resource):
         user_json['num_following'] = len(user.following)
         user_json['num_followers'] = len(user.followers)
         user_json['num_liked'] = len(user.created_lists.liked_lists)
-        user_json['liked_lists'] = user.created_lists.liked_lists
+        user_json['liked_lists'] = [{'$oid': str(liked.id)} for liked in user.created_lists.liked_lists]
         return user_json, 200
 
 # /login
@@ -78,7 +78,7 @@ class LoginApi(Resource):
         user_json['num_following'] = len(user.following)
         user_json['num_followers'] = len(user.followers)
         user_json['num_liked'] = len(user.created_lists.liked_lists)
-        user_json['liked_lists'] = user.created_lists.liked_lists
+        user_json['liked_lists'] = [{'$oid': str(liked.id)} for liked in user.created_lists.liked_lists]
         return user_json, 200
 
 # /validate_token
@@ -93,7 +93,7 @@ class TokenApi(Resource):
         user_json['num_following'] = len(user.following)
         user_json['num_followers'] = len(user.followers)
         user_json['num_liked'] = len(user.created_lists.liked_lists)
-        user_json['liked_lists'] = user.created_lists.liked_lists
+        user_json['liked_lists'] = [{'$oid': str(liked.id)} for liked in user.created_lists.liked_lists]
         return user_json, 200
 
 #/user_avail/<name>
