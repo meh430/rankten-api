@@ -210,9 +210,13 @@ class FeedApi(Resource):
                 feed_list.extend(following_made)
             feed_list = sort_list(feed_list, DATE_DESC)
             feed_list = ranked_list_card(feed_list)
+            bounds = validate_bounds(len(feed_list), page)
+            if not bounds:
+                raise InvalidPageError
+            
             JsonCache.cache_item(key=user.user_name, item=feed_list, itemType=FEED)
         
-        return feed_list, 200
+        return slice_list(feed_list, page), 200
 
 class PrivateListApi(Resource):
 
