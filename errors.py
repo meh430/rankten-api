@@ -64,6 +64,13 @@ class CommentDeleteError(Exception):
 class UnauthorizedError(Exception):
     pass
 
+def slice_list(documents, page, num_items=10):
+    bounds = validate_bounds(len(documents), page, num_items)
+    if len(bounds) == 0:
+        raise InvalidPageError
+ 
+    return documents[bounds[0]:bounds[1]]
+
 
 def check_ps(func):
     def wrapper(*args, **kwargs):

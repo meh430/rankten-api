@@ -35,13 +35,6 @@ def validate_bounds(list_len, page, num_items=10):
     return (lower, upper)
 
 
-def slice_list(documents, page, num_items=10):
-    bounds = validate_bounds(len(documents), page, num_items)
-    if len(bounds) == 0:
-        return ['Trying to access a page that does not exist']
- 
-    return documents[bounds[0]:bounds[1]]
-
 def get_compact_uinfo(user_list):
     return [{'user_name': f.user_name, 'prof_pic': f.prof_pic, 'bio': f.bio if len(f.bio) <= 200 else (f.bio[:196]+'...'), 'rank_points': f.rank_points} for f in user_list]
 
